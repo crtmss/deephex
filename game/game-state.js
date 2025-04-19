@@ -1,3 +1,4 @@
+import { render } from './map.js';
 import { supabase, playerId } from '../lib/supabase.js';
 import { map } from './map.js';
 import { units } from './units.js';
