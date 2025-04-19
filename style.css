@@ -1,0 +1,14 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+}
+
+#ui {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: #fff;
+  padding: 10px;
+  border: 1px solid #ccc;
+  z-index: 10;
+}
