@@ -1,4 +1,4 @@
-import './lib/supabase.js';
+import { supabase } from './lib/supabase.js';
 import { initMap } from './game/map.js';
 import { initLobby, createLobby, joinLobby } from './game/lobby.js';
 import { endTurn } from './game/turn.js';
