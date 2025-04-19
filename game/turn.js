@@ -1,9 +1,10 @@
-import { saveGameState } from './game-state.js';
+import { getState, updateState } from './game-state.js';
 
-let currentTurn = 'player_1';
-
-export function endTurn() {
+export async function endTurn() {
   const state = getState();
+
+  // Toggle the turn between player_1 and player_2
   state.turn = state.turn === 'player_1' ? 'player_2' : 'player_1';
-  await updateState(state)
+
+  await updateState(state);
 }
