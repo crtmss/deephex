@@ -1,16 +1,16 @@
-import { supabase } from '../lib/supabase.js';
+import { supabase, playerId } from '../lib/supabase.js';
 import { map } from './map.js';
 import { units } from './units.js';
-import { playerId } from '../lib/supabase.js';
 import { roomId } from './lobby.js';
 
 let currentLobbyId = null;
 
 let gameState = {};
 
+
 export function setState(newState) {
   gameState = newState;
-  render(); // Re-render game when state changes
+  render(); // Update canvas etc
 }
 
 export function getState() {
