@@ -14,8 +14,16 @@ export async function initLobby() {
 
 export async function createLobby() {
   const roomCode = Math.floor(Math.random() * 100000).toString().padStart(5, '0');
-  await supabase.from('lobbies').insert([{ room_code: roomCode, player_1: playerId }]);
-  document.getElementById('status').textContent = `Created room: ${roomCode}`;
+  const { data, error } = await supabase
+    .from('lobbies')
+    .insert([{ room_code: roomCode, player_1: playerId }])
+    .select()
+    .single();
+
+  if (data) {
+    document.getElementById('status').textContent = `Created room: ${roomCode}`;
+    startGameSync(data.id);
+  }
 }
 
 export async function joinLobby() {
@@ -25,6 +33,6 @@ export async function joinLobby() {
     const lobby = lobbies[0];
     await supabase.from('lobbies').update({ player_2: playerId }).eq('id', lobby.id);
     document.getElementById('status').textContent = `Joined room: ${roomCode}`;
+    startGameSync(lobby.id);
   }
 }
-
