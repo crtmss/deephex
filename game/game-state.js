@@ -10,7 +10,7 @@ let gameState = {};
 
 export function setState(newState) {
   gameState = newState;
-  render(); // Update canvas etc
+  render(gameState); // ✅ Re-render after state updates
 }
 
 export function getState() {
@@ -20,6 +20,7 @@ export function getState() {
 export async function updateState(newState) {
   gameState = newState;
   await supabase.from('lobbies').update({ state: gameState }).eq('id', roomId);
+  render(gameState); // ✅ Also re-render after local change
 }
 
 export async function loadState() {
