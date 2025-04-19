@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Hex Tactics</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="ui">
+    <button onclick="createLobby()">Create Lobby</button>
+    <input id="roomCode" placeholder="Room Code" />
+    <button onclick="joinLobby()">Join Lobby</button>
+    <div id="status">Checking connection...</div>
+    <div id="turnInfo"></div>
+    <button onclick="endTurn()">End Turn</button>
+    <button onclick="performAction()">Action</button>
+  </div>
+  <canvas id="gameCanvas" width="1000" height="800"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script type="module" src="script.js"></script>
+</body>
+</html>
