@@ -2,8 +2,32 @@ import { supabase } from '../lib/supabase.js';
 import { map } from './map.js';
 import { units } from './units.js';
 import { playerId } from './lobby.js';
+import { roomId } from './lobby.js';
 
 let currentLobbyId = null;
+
+let gameState = {};
+
+export function setState(newState) {
+  gameState = newState;
+  render(); // Re-render game when state changes
+}
+
+export function getState() {
+  return gameState;
+}
+
+export async function updateState(newState) {
+  gameState = newState;
+  await supabase.from('lobbies').update({ state: gameState }).eq('id', roomId);
+}
+
+export async function loadState() {
+  const { data } = await supabase.from('lobbies').select('*').eq('id', roomId).single();
+  if (data && data.state) {
+    setState(data.state);
+  }
+}
 
 export async function startGameSync(lobbyId) {
   currentLobbyId = lobbyId;
