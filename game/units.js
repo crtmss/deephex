@@ -3,10 +3,6 @@ export let units = [
   { id: 2, type: 'archer', x: 20, y: 20, hp: 5, owner: 'player_2' }
 ];
 
-export function performAction() {
-  console.log('Action executed');
-}
-
 import { getState, updateState } from './game-state.js';
 import { playerId } from '../lib/supabase.js';
 
