@@ -1,15 +1,14 @@
-CREATE TABLE lobbies (
-  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
-  room_code text UNIQUE,
-  created_at timestamp with time zone DEFAULT now(),
+create table public.lobbies (
+  id uuid primary key default gen_random_uuid(),
+  room_code text not null,
   player_1 text,
   player_2 text,
   state jsonb
 );
 
-ALTER TABLE lobbies ENABLE ROW LEVEL SECURITY;
+-- Allow full access for dev (you can tighten later)
+alter table lobbies enable row level security;
 
-CREATE POLICY "Allow all access"
-  ON lobbies FOR ALL
-  USING (true) WITH CHECK (true);
-
+create policy "Allow all" on lobbies
+  for all
+  using (true);
