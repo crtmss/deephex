@@ -9,4 +9,3 @@ window.endTurn = endTurn;
 window.performAction = performAction;
 
 initLobby();
-initMap();
