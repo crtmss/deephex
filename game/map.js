@@ -1,7 +1,7 @@
 // game/map.js
 
 import { getState } from './game-state.js';
-import { drawHex, drawUnit, drawTerrain } from './draw.js';
+import { drawUnit, drawTerrain } from './draw.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
