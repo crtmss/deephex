@@ -1,47 +1,65 @@
 // game/draw.js
 
-export function drawTerrain(ctx, x, y, terrain, hexSize) {
-  const [px, py] = hexToPixel(x, y, hexSize);
+const SQRT3 = Math.sqrt(3);
+
+export function drawTerrain(ctx, col, row, terrain, size) {
+  const { x, y } = hexToPixel(col, row, size);
+  const corners = getHexCorners(x, y, size);
 
   ctx.beginPath();
-  ctx.moveTo(...hexCorner(px, py, hexSize, 0));
+  ctx.moveTo(corners[0].x, corners[0].y);
   for (let i = 1; i < 6; i++) {
-    ctx.lineTo(...hexCorner(px, py, hexSize, i));
+    ctx.lineTo(corners[i].x, corners[i].y);
   }
   ctx.closePath();
 
-  // Fill based on terrain type
-  switch (terrain) {
-    case 'mud': ctx.fillStyle = '#8B7355'; break;        // gray-brown
-    case 'sand': ctx.fillStyle = '#f0e68c'; break;        // pale yellow
-    case 'mountain': ctx.fillStyle = '#888888'; break;    // gray
-    default: ctx.fillStyle = '#55aa55'; break;            // green grass
-  }
-
+  ctx.fillStyle = terrainColor(terrain);
   ctx.fill();
-  ctx.strokeStyle = '#333';
+  ctx.strokeStyle = "#444";
   ctx.stroke();
 }
 
-export function drawUnit(ctx, unit, hexSize) {
-  const [px, py] = hexToPixel(unit.x, unit.y, hexSize);
+export function drawUnit(ctx, unit, size) {
+  const { x, y } = hexToPixel(unit.x, unit.y, size);
+
   ctx.beginPath();
-  ctx.arc(px, py, hexSize / 3, 0, Math.PI * 2);
-
-  ctx.fillStyle = unit.owner === 1 ? 'blue' : 'red'; // Player colors
+  ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
+  ctx.fillStyle = unit.owner === 1 ? "red" : "blue";
   ctx.fill();
-  ctx.strokeStyle = '#000';
+  ctx.strokeStyle = "#000";
   ctx.stroke();
 }
 
-// Helpers
-function hexToPixel(q, r, size) {
-  const x = size * Math.sqrt(3) * (q + r / 2);
-  const y = size * 3 / 2 * r;
-  return [x, y];
+function terrainColor(type) {
+  switch (type) {
+    case "mountain": return "#777";
+    case "grass": return "#3c6";
+    case "mud": return "#6b4c3b";
+    case "sand": return "#f4e7b5";
+    default: return "#ccc";
+  }
 }
 
-function hexCorner(cx, cy, size, i) {
-  const angle = Math.PI / 3 * i;
-  return [cx + size * Math.cos(angle), cy + size * Math.sin(angle)];
+function hexToPixel(col, row, size) {
+  // Pointy-top hex layout
+  const x = size * SQRT3 * (col + 0.5 * (row % 2));
+  const y = size * 1.5 * row;
+
+  // Center offset (computed from canvas size later)
+  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+
+  return { x: x + offsetX, y: y + offsetY };
+}
+
+function getHexCorners(cx, cy, size) {
+  const corners = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.PI / 180 * (60 * i - 30); // -30 for pointy-top start
+    corners.push({
+      x: cx + size * Math.cos(angle),
+      y: cy + size * Math.sin(angle)
+    });
+  }
+  return corners;
 }
