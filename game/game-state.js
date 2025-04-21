@@ -1,105 +1,26 @@
-// game/map.js
+// game/game-state.js
 
-// === Terrain Types ===
-export const terrainTypes = {
-  grassland: { movementCost: 1, color: '#4CAF50' },
-  sand: { movementCost: 2, color: '#FFF59D' },
-  mud: { movementCost: 3, color: '#795548' },
-  mountain: { movementCost: Infinity, color: '#9E9E9E', impassable: true }
+import { render } from './map.js';
+
+let state = {
+  units: [],          // Array of units on the map
+  currentTurn: null,  // Player ID whose turn it is
+  map: [],            // Full hex map (25x25)
+  playerId: null,     // This client's assigned playerId
 };
 
-// === Seeded Random Generator ===
-function seededRandom(seed) {
-  let h = 2166136261 >>> 0;
-  for (let i = 0; i < seed.length; i++) {
-    h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+// Allows other modules to update game state
+export function setState(newState) {
+  state = { ...state, ...newState };
+
+  // Trigger render when the map is updated
+  const canvas = document.getElementById('game-canvas');
+  if (canvas && state.map.length > 0) {
+    render(canvas, state.map);
   }
-  return function () {
-    h += h << 13; h ^= h >>> 7;
-    h += h << 3; h ^= h >>> 17;
-    h += h << 5;
-    return (h >>> 0) / 4294967296;
-  };
 }
 
-// === Map Generation Function ===
-export function generateMap(rows, cols, seed) {
-  const rand = seededRandom(seed);
-  const map = [];
-
-  let sandCount = 0;
-  let mudCount = 0;
-  const maxBiomeSize = 30;
-
-  for (let r = 0; r < rows; r++) {
-    const row = [];
-    for (let q = 0; q < cols; q++) {
-      const n = rand();
-      let type = 'grassland';
-
-      if (n > 0.98) {
-        type = 'mountain';
-      } else if (n > 0.92 && sandCount < maxBiomeSize) {
-        type = 'sand';
-        sandCount++;
-      } else if (n > 0.85 && mudCount < maxBiomeSize) {
-        type = 'mud';
-        mudCount++;
-      }
-
-      row.push({
-        q,
-        r,
-        type,
-        movementCost: terrainTypes[type].movementCost,
-        impassable: terrainTypes[type].impassable || false,
-      });
-    }
-    map.push(row);
-  }
-
-  return map;
-}
-
-// === Generate a Default Map with Shared Seed ===
-export const map = generateMap(25, 25, 'shared-seed-123');
-
-// === Hex Geometry Helpers ===
-const HEX_SIZE = 25;
-function hexToPixel(q, r) {
-  const x = HEX_SIZE * 3/2 * q;
-  const y = HEX_SIZE * Math.sqrt(3) * (r + q / 2);
-  return { x, y };
-}
-
-function drawHex(ctx, x, y, size, color) {
-  ctx.beginPath();
-  for (let i = 0; i < 6; i++) {
-    const angle = Math.PI / 3 * i;
-    const dx = x + size * Math.cos(angle);
-    const dy = y + size * Math.sin(angle);
-    if (i === 0) ctx.moveTo(dx, dy);
-    else ctx.lineTo(dx, dy);
-  }
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.strokeStyle = '#333';
-  ctx.stroke();
-}
-
-// === Render Function ===
-export function render(canvasElement, gameMap = map) {
-  const ctx = canvasElement.getContext('2d');
-  ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
-  const offsetX = (canvasElement.width - (25 * HEX_SIZE * 1.5)) / 2;
-  const offsetY = (canvasElement.height - (25 * HEX_SIZE * Math.sqrt(3))) / 2;
-
-  for (const row of gameMap) {
-    for (const hex of row) {
-      const { x, y } = hexToPixel(hex.q, hex.r);
-      drawHex(ctx, x + offsetX, y + offsetY, HEX_SIZE, terrainTypes[hex.type].color);
-    }
-  }
+// Allows reading the current game state
+export function getState() {
+  return state;
 }
