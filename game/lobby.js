@@ -104,3 +104,7 @@ export function initLobby() {
     if (code) joinLobby(code);
   });
 }
+
+// ✅ Add these exports to fix your import errors
+export { createLobby, joinLobby, roomId, playerId };
+}
