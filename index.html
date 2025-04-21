@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DeepHex Lobby</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="icon" type="image/png" href="assets/favicon.png" />
   <style>
     body {
       margin: 0;
@@ -77,7 +78,19 @@
     <button onclick="alert('Settings coming soon!')">Settings</button>
   </div>
 
-  <script src="lib/supabase.js"></script>
+  <!-- Supabase CDN instead of import -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Project Config -->
+  <script>
+    const supabase = window.supabase.createClient(
+      'https://pcdveqprfopaofcjkady.supabase.co',
+      'your-public-anon-key-here'
+    );
+  </script>
+
+  <!-- Your JS (in correct structure) -->
   <script src="game/lobby.js"></script>
 </body>
 </html>
+
