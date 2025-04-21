@@ -22,8 +22,8 @@ function seededRandom(seed) {
   };
 }
 
-// === Map Generation ===
-function generateMap(rows, cols, seed) {
+// === Map Generation Function ===
+export function generateMap(rows, cols, seed) {
   const rand = seededRandom(seed);
   const map = [];
 
@@ -61,6 +61,7 @@ function generateMap(rows, cols, seed) {
   return map;
 }
 
+// === Generate a Default Map with Shared Seed ===
 export const map = generateMap(25, 25, 'shared-seed-123');
 
 // === Hex Geometry Helpers ===
@@ -87,12 +88,11 @@ function drawHex(ctx, x, y, size, color) {
   ctx.stroke();
 }
 
-// === Main Render Function ===
+// === Render Function ===
 export function render(canvasElement, gameMap = map) {
   const ctx = canvasElement.getContext('2d');
   ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
 
-  // Center map
   const offsetX = (canvasElement.width - (25 * HEX_SIZE * 1.5)) / 2;
   const offsetY = (canvasElement.height - (25 * HEX_SIZE * Math.sqrt(3))) / 2;
 
@@ -103,3 +103,4 @@ export function render(canvasElement, gameMap = map) {
     }
   }
 }
+
