@@ -8,21 +8,21 @@
 </head>
 <body>
   <div id="ui">
-    <button onclick="createLobby()">Create Lobby</button>
-    <input id="roomCode" placeholder="Room Code" />
-    <button onclick="joinLobby()">Join Lobby</button>
+    <button id="create-room">Create Lobby</button>
+    <input id="room-code" placeholder="Room Code" />
+    <button id="join-room">Join Lobby</button>
     <div id="status">Checking connection...</div>
     <div id="turnInfo"></div>
     <button onclick="endTurn()">End Turn</button>
     <button onclick="performAction()">Action</button>
   </div>
-  
+
   <canvas id="gameCanvas" width="1000" height="800"></canvas>
 
-  <!-- This loads the Supabase client library -->
+  <!-- Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
-  <!-- Your main game logic -->
+  <!-- Main Game Script -->
   <script type="module" src="script.js"></script>
 </body>
 </html>
