@@ -8,15 +8,30 @@ export let roomId = null;
 export let playerId = null;
 
 function generateRoomCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit code
+  return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit numeric room code
 }
 
-// Create a new lobby
+// Create a new lobby and host player
 async function createLobby() {
   const room_code = generateRoomCode();
+  const initialMap = generateMap();
+
   const { data, error } = await supabase
     .from('lobbies')
-    .insert([{ room_code, player_1: true, state: {} }])
+    .insert([
+      {
+        room_code,
+        player_1: true,
+        player_2: false,
+        state: {
+          map: initialMap,
+          turn: 'player1',
+          units: [
+            { id: 'p1unit', owner: 'player1', x: 2, y: 2, hp: 5, mp: 8, ap: 1 }
+          ]
+        }
+      }
+    ])
     .select('id, room_code');
 
   if (error) {
@@ -28,83 +43,117 @@ async function createLobby() {
   roomId = data[0].id;
   playerId = 'player1';
 
-  // Generate and save map for both players
-  const generatedMap = generateMap();
-  await supabase
-    .from('lobbies')
-    .update({ state: { map: generatedMap, turn: 'player1' } })
-    .eq('id', roomId);
-
   setState({
-    map: generatedMap,
     playerId,
+    roomId,
+    map: initialMap,
     currentTurn: 'player1',
+    units: [
+      { id: 'p1unit', owner: 'player1', x: 2, y: 2, hp: 5, mp: 8, ap: 1 }
+    ]
   });
 
   listenToLobby(roomId);
-  console.log(`Created room: ${room_code}`);
+  console.log(`Created room ${room_code}`);
 }
 
-// Join an existing lobby
+// Join an existing lobby as player 2
 async function joinLobby(room_code) {
   const { data, error } = await supabase
     .from('lobbies')
     .select('*')
     .eq('room_code', room_code)
-    .limit(1)
     .single();
 
   if (error || !data) {
-    console.error('Join error:', error.message);
+    console.error('Lobby join error:', error.message);
     alert('Failed to join lobby');
     return;
   }
 
+  // Update player_2 to true
+  await supabase
+    .from('lobbies')
+    .update({ player_2: true })
+    .eq('id', data.id);
+
   roomId = data.id;
   playerId = 'player2';
 
-  setState({
-    map: data.state.map,
-    playerId,
-    currentTurn: data.state.turn,
+  const state = data.state;
+  state.units.push({
+    id: 'p2unit',
+    owner: 'player2',
+    x: 22,
+    y: 22,
+    hp: 5,
+    mp: 8,
+    ap: 1
   });
 
-  listenToLobby(roomId);
-  console.log(`Joined room: ${room_code}`);
+  await supabase
+    .from('lobbies')
+    .update({ state })
+    .eq('id', data.id);
+
+  setState({
+    playerId,
+    roomId: data.id,
+    map: state.map,
+    currentTurn: state.turn,
+    units: state.units
+  });
+
+  listenToLobby(data.id);
+  console.log(`Joined room ${room_code}`);
 }
 
-// Listen to real-time lobby updates
+// Realtime lobby updates
 function listenToLobby(roomId) {
   supabase
     .channel(`lobby-${roomId}`)
     .on(
       'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${roomId}` },
-      payload => {
-        const updatedState = payload.new.state;
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'lobbies',
+        filter: `id=eq.${roomId}`
+      },
+      (payload) => {
+        const newState = payload.new.state;
         setState({
-          map: updatedState.map,
-          currentTurn: updatedState.turn,
-          units: updatedState.units || [],
+          map: newState.map,
+          currentTurn: newState.turn,
+          units: newState.units
         });
       }
     )
     .subscribe();
 }
 
-// Initial lobby setup
+// Initializes event listeners on the lobby UI
 export function initLobby() {
   const createBtn = document.getElementById('create-room');
   const joinBtn = document.getElementById('join-room');
   const codeInput = document.getElementById('room-code');
 
-  createBtn.addEventListener('click', () => createLobby());
+  createBtn.addEventListener('click', () => {
+    createLobby();
+  });
+
   joinBtn.addEventListener('click', () => {
     const code = codeInput.value.trim();
-    if (code) joinLobby(code);
+    if (code) {
+      joinLobby(code);
+    }
   });
 }
 
-// ✅ Add these exports to fix your import errors
-export { createLobby, joinLobby, roomId, playerId };
-}
+// ✅ Export everything needed
+export {
+  createLobby,
+  joinLobby,
+  roomId,
+  playerId
+};
