@@ -1,6 +1,6 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-import { generateMap } from '../js/map.js';
-import { setState } from '../js/game-state.js';
+import { generateMap } from '../game/map.js';
+import { setState } from '../game/game-state.js';
 
 const supabase = createClient(
   'https://pcdveqprfopaofcjkady.supabase.co',
