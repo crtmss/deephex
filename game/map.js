@@ -2,32 +2,39 @@
 
 import { getState } from './game-state.js';
 import { drawTerrain, drawUnit } from './draw.js';
+import { sfc32, cyrb128 } from './prng.js';
 
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 const HEX_SIZE = 20;
 
 // ✅ Exported map used in the game
-export const map = generateMap(25, 25);
+export function generateMap(width, height, seed) {
+  const seedArray = cyrb128(seed);
+  const rand = sfc32(...seedArray);
 
-export function generateMap(width, height) {
   const map = [];
-
   for (let y = 0; y < height; y++) {
     const row = [];
     for (let x = 0; x < width; x++) {
-      let terrain = 'grass';
-
-      const noise = Math.sin(x * 0.2) + Math.cos(y * 0.3);
-
-      if (noise > 1.2) terrain = 'sand';
-      else if (noise < -1.2) terrain = 'mud';
-      else if (Math.random() < 0.07) terrain = 'mountain';
-
-      row.push(terrain);
+      row.push({ x, y, terrain: 'grass' });
     }
     map.push(row);
   }
+
+  const biomes = ['mud', 'sand', 'mountain'];
+  biomes.forEach((biome) => {
+    let count = 0;
+    const maxTiles = biome === 'mountain' ? 15 : 30;
+    while (count < maxTiles) {
+      const x = Math.floor(rand() * width);
+      const y = Math.floor(rand() * height);
+      if (map[y][x].terrain === 'grass') {
+        map[y][x].terrain = biome;
+        count++;
+      }
+    }
+  });
 
   return map;
 }
