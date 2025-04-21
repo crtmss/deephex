@@ -11,10 +11,11 @@ function generateRoomCode() {
   return Math.floor(100000 + Math.random() * 900000).toString(); // 6-digit numeric code
 }
 
-// Create a new lobby and set player 1
+// === Create a new lobby and set player 1 ===
 async function createLobby() {
   const room_code = generateRoomCode();
-  const initialMap = generateMap();
+  const mapSeed = room_code; // use room code as the seed so both players get the same map
+  const initialMap = generateMap(25, 25, mapSeed);
 
   const initialUnits = [
     {
@@ -35,6 +36,7 @@ async function createLobby() {
         room_code,
         player_1: true,
         player_2: false,
+        seed: mapSeed,
         state: {
           map: initialMap,
           turn: 'player1',
@@ -65,7 +67,7 @@ async function createLobby() {
   console.log(`Lobby created with code: ${room_code}`);
 }
 
-// Join an existing lobby and set player 2
+// === Join an existing lobby and set player 2 ===
 async function joinLobby(room_code) {
   const { data, error } = await supabase
     .from('lobbies')
@@ -79,7 +81,6 @@ async function joinLobby(room_code) {
     return;
   }
 
-  // Add player 2
   await supabase
     .from('lobbies')
     .update({ player_2: true })
@@ -88,6 +89,8 @@ async function joinLobby(room_code) {
   roomId = data.id;
   playerId = 'player2';
 
+  const mapSeed = data.seed || room_code;
+  const map = generateMap(25, 25, mapSeed);
   const state = data.state;
   const newUnit = {
     id: 'p2unit',
@@ -100,6 +103,7 @@ async function joinLobby(room_code) {
   };
 
   state.units.push(newUnit);
+  state.map = map;
 
   await supabase
     .from('lobbies')
@@ -109,7 +113,7 @@ async function joinLobby(room_code) {
   setState({
     playerId,
     roomId: data.id,
-    map: state.map,
+    map: map,
     currentTurn: state.turn,
     units: state.units
   });
@@ -118,7 +122,7 @@ async function joinLobby(room_code) {
   console.log(`Joined lobby with code: ${room_code}`);
 }
 
-// Listen for realtime updates
+// === Listen for realtime updates ===
 function listenToLobby(roomId) {
   supabase
     .channel(`lobby-${roomId}`)
@@ -142,11 +146,16 @@ function listenToLobby(roomId) {
     .subscribe();
 }
 
-// Setup lobby UI interactions
+// === Setup lobby UI interactions ===
 function initLobby() {
   const createBtn = document.getElementById('create-room');
   const joinBtn = document.getElementById('join-room');
   const codeInput = document.getElementById('room-code');
+
+  if (!createBtn || !joinBtn || !codeInput) {
+    console.error('Lobby UI buttons not found in DOM.');
+    return;
+  }
 
   createBtn.addEventListener('click', () => {
     createLobby();
