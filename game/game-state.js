@@ -3,24 +3,33 @@
 import { render } from './map.js';
 
 let state = {
-  units: [],          // Array of units on the map
-  currentTurn: null,  // Player ID whose turn it is
-  map: [],            // Full hex map (25x25)
+  units: [],          // Array of all unit objects on the map
+  currentTurn: null,  // 'player1' or 'player2'
+  map: [],            // The 2D array map of terrain tiles
   playerId: null,     // This client's assigned playerId
+  roomId: null,       // ID of the connected room
 };
 
-// Allows other modules to update game state
+// Merges newState into existing state and triggers render if needed
 export function setState(newState) {
   state = { ...state, ...newState };
+  renderIfMapExists();
+}
 
-  // Trigger render when the map is updated
+// Similar to setState — semantic alias
+export function updateState(newState) {
+  setState(newState);
+}
+
+// Access current game state
+export function getState() {
+  return state;
+}
+
+// Internal helper to re-render canvas map
+function renderIfMapExists() {
   const canvas = document.getElementById('game-canvas');
   if (canvas && state.map.length > 0) {
     render(canvas, state.map);
   }
-}
-
-// Allows reading the current game state
-export function getState() {
-  return state;
 }
