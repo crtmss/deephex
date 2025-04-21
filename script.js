@@ -8,4 +8,6 @@ window.joinLobby = joinLobby;
 window.endTurn = endTurn;
 window.performAction = performAction;
 
-initLobby();
+window.addEventListener('DOMContentLoaded', () => {
+  initLobby();
+});
