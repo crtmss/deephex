@@ -1,7 +1,7 @@
 // game/lobby.js
 
 import { generateMap } from './map.js';
-import { supabase } from './supabase.js';
+import { supabase } from '../lib/supabase.js';
 import { setState } from './game-state.js';
 
 export let playerId = null;
