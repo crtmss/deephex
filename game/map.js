@@ -10,7 +10,7 @@ export const terrainTypes = {
 
 // === Seeded Random Generator ===
 function seededRandom(seed) {
-  if (!seed || seed.length === 0) {
+  if (!seed || typeof seed !== 'string') {
     seed = 'defaultseed';
   }
 
@@ -26,7 +26,7 @@ function seededRandom(seed) {
 }
 
 // === Map Generation Function ===
-export function generateMap(rows, cols, seed) {
+export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
   const rand = seededRandom(seed);
   const map = [];
 
@@ -64,7 +64,7 @@ export function generateMap(rows, cols, seed) {
   return map;
 }
 
-// === Generate a Default Map with Shared Seed ===
+// === Default Map (for non-networked testing) ===
 export const map = generateMap(25, 25, 'shared-seed-123');
 
 // === Hex Geometry Helpers ===
