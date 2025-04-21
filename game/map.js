@@ -10,15 +10,18 @@ export const terrainTypes = {
 
 // === Seeded Random Generator ===
 function seededRandom(seed) {
-  let h = 2166136261 >>> 0;
-  for (let i = 0; i < seed.length; i++) {
-    h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  if (!seed || seed.length === 0) {
+    seed = 'defaultseed';
   }
-  return function () {
-    h += h << 13; h ^= h >>> 7;
-    h += h << 3; h ^= h >>> 17;
-    h += h << 5;
-    return (h >>> 0) / 4294967296;
+
+  let x = 0;
+  for (let i = 0; i < seed.length; i++) {
+    x += seed.charCodeAt(i);
+  }
+
+  return () => {
+    x = (x * 9301 + 49297) % 233280;
+    return x / 233280;
   };
 }
 
