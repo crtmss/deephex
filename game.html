@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DeepHex Game</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+  <!-- Sidebar UI -->
+  <div class="sidebar">
+    <div id="turn-display">Waiting...</div>
+    <div>HP: <span id="unit-hp">-</span></div>
+    <div>MP: <span id="unit-mp">-</span></div>
+    <div>AP: <span id="unit-ap">-</span></div>
+    <button id="end-turn-btn">End Turn</button>
+    <button id="action-btn">Action</button>
+  </div>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    const supabase = createClient(
+      'https://pcdveqprfopaofcjkady.supabase.co',
+      'YOUR-PUBLIC-ANON-KEY-HERE'
+    );
+    window.supabase = supabase;
+  </script>
+
+  <!-- Game logic -->
+  <script src="game/game.js"></script>
+</body>
+</html>
