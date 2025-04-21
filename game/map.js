@@ -1,7 +1,5 @@
 // game/map.js
 
-import { noise } from './noise.js'; // Simplex or Perlin noise generator
-
 export const map = generateMap(25, 25, 'shared-seed-123');
 
 // Tile movement costs and colors
