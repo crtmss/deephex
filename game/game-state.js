@@ -1,7 +1,6 @@
 import { map, render } from './map.js';
 import { supabase, playerId } from '../lib/supabase.js';
 import { units } from './units.js';
-import { roomId } from './lobby.js';
 
 let currentLobbyId = null;
 
