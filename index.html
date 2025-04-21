@@ -5,92 +5,51 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DeepHex Lobby</title>
   <link rel="stylesheet" href="style.css" />
-  <link rel="icon" type="image/png" href="assets/favicon.png" />
-  <style>
-    body {
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: #0f0f1f;
-      color: #f0f0f0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-    }
-
-    .menu {
-      text-align: center;
-      background: rgba(255, 255, 255, 0.05);
-      border-radius: 16px;
-      padding: 30px;
-      width: 90%;
-      max-width: 400px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-    }
-
-    .menu h1 {
-      font-size: 2em;
-      margin-bottom: 20px;
-    }
-
-    .menu button {
-      display: block;
-      width: 100%;
-      margin: 10px 0;
-      padding: 12px;
-      font-size: 1em;
-      border: none;
-      border-radius: 10px;
-      background: #1f1f3f;
-      color: white;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    .menu button:hover {
-      background: #2a2a5f;
-    }
-
-    .menu button:disabled {
-      background: #444;
-      cursor: default;
-    }
-
-    @media (max-width: 500px) {
-      .menu h1 {
-        font-size: 1.5em;
-      }
-
-      .menu button {
-        font-size: 0.95em;
-        padding: 10px;
-      }
-    }
-  </style>
 </head>
 <body>
-  <div class="menu">
-    <h1>DeepHex</h1>
-    <button id="start-button">Start Singleplayer</button>
-    <button id="host-button">Host Server</button>
-    <button id="join-button">Connect to a Server</button>
-    <button onclick="alert('Settings coming soon!')">Settings</button>
+  <main class="menu-container">
+    <h1 class="title">DeepHex</h1>
+    <ul class="menu">
+      <li class="disabled">Start Singleplayer</li>
+      <li id="host-btn">Host Server</li>
+      <li id="connect-btn">Connect to a Server</li>
+      <li id="settings-btn">Settings</li>
+    </ul>
+  </main>
+
+  <!-- Settings Modal (Optional) -->
+  <div id="settings-modal" class="modal hidden">
+    <div class="modal-content">
+      <h2>Settings</h2>
+      <label>
+        Volume
+        <input type="range" min="0" max="100" value="75" />
+      </label>
+      <label>
+        Resolution
+        <select>
+          <option>800x600</option>
+          <option>1024x768</option>
+          <option>1280x720</option>
+          <option>1920x1080</option>
+        </select>
+      </label>
+      <label>
+        Mode
+        <select>
+          <option>Windowed</option>
+          <option>Fullscreen</option>
+        </select>
+      </label>
+      <label>
+        Language
+        <input type="range" min="0" max="4" value="0" step="1" />
+      </label>
+      <button onclick="document.getElementById('settings-modal').classList.add('hidden')">Close</button>
+    </div>
   </div>
 
-  <!-- Supabase CDN instead of import -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Project Config -->
-  <script>
-    const supabase = window.supabase.createClient(
-      'https://pcdveqprfopaofcjkady.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjZHZlcXByZm9wYW9mY2prYWR5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDUwNDMyMDksImV4cCI6MjA2MDYxOTIwOX0.YYffphzHl9CtG6L9XpEBLgFE9WfYSq_F-RT3cg10d_k'
-    );
-  </script>
-
-  <!-- Your JS (in correct structure) -->
-  <script src="game/lobby.js"></script>
+  <!-- Scripts -->
+  <script type="module" src="game/lobby.js"></script>
 </body>
 </html>
-
