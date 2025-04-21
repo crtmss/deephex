@@ -1,15 +1,21 @@
+import { initLobby } from './game/lobby.js';
 import { supabase } from './lib/supabase.js';
-import { initLobby, createLobby, joinLobby } from './game/lobby.js';
-import { endTurn } from './game/turn.js';
-import { performAction } from './game/units.js';
 
-// Attach functions to window for inline HTML event handlers
-window.createLobby = createLobby;
-window.joinLobby = joinLobby;
-window.endTurn = endTurn;
-window.performAction = performAction;
+document.addEventListener('DOMContentLoaded', async () => {
+  const status = document.getElementById('status');
 
-// Call initLobby after the DOM is fully loaded
-window.addEventListener('DOMContentLoaded', () => {
+  try {
+    const { error } = await supabase.from('lobbies').select().limit(1);
+    if (error) {
+      console.error('Supabase connection failed:', error.message);
+      status.textContent = 'Failed to connect to Supabase.';
+    } else {
+      status.textContent = 'Connected to Supabase.';
+    }
+  } catch (err) {
+    status.textContent = 'Connection error.';
+    console.error('Connection test failed:', err);
+  }
+
   initLobby();
 });
