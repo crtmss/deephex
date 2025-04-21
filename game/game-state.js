@@ -1,76 +1,105 @@
-import { map, render } from './map.js';
-import { supabase, playerId } from '../lib/supabase.js';
-import { units } from './units.js';
+// game/map.js
 
-let currentLobbyId = null;
+// === Terrain Types ===
+export const terrainTypes = {
+  grassland: { movementCost: 1, color: '#4CAF50' },
+  sand: { movementCost: 2, color: '#FFF59D' },
+  mud: { movementCost: 3, color: '#795548' },
+  mountain: { movementCost: Infinity, color: '#9E9E9E', impassable: true }
+};
 
-let gameState = {};
-
-
-export function setState(newState) {
-  gameState = newState;
-  render(gameState); // ✅ Re-render after state updates
+// === Seeded Random Generator ===
+function seededRandom(seed) {
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  }
+  return function () {
+    h += h << 13; h ^= h >>> 7;
+    h += h << 3; h ^= h >>> 17;
+    h += h << 5;
+    return (h >>> 0) / 4294967296;
+  };
 }
 
-export function getState() {
-  return gameState;
+// === Map Generation Function ===
+export function generateMap(rows, cols, seed) {
+  const rand = seededRandom(seed);
+  const map = [];
+
+  let sandCount = 0;
+  let mudCount = 0;
+  const maxBiomeSize = 30;
+
+  for (let r = 0; r < rows; r++) {
+    const row = [];
+    for (let q = 0; q < cols; q++) {
+      const n = rand();
+      let type = 'grassland';
+
+      if (n > 0.98) {
+        type = 'mountain';
+      } else if (n > 0.92 && sandCount < maxBiomeSize) {
+        type = 'sand';
+        sandCount++;
+      } else if (n > 0.85 && mudCount < maxBiomeSize) {
+        type = 'mud';
+        mudCount++;
+      }
+
+      row.push({
+        q,
+        r,
+        type,
+        movementCost: terrainTypes[type].movementCost,
+        impassable: terrainTypes[type].impassable || false,
+      });
+    }
+    map.push(row);
+  }
+
+  return map;
 }
 
-export async function updateState(newState) {
-  gameState = newState;
-  await supabase.from('lobbies').update({ state: gameState }).eq('id', roomId);
-  render(gameState); // ✅ Also re-render after local change
+// === Generate a Default Map with Shared Seed ===
+export const map = generateMap(25, 25, 'shared-seed-123');
+
+// === Hex Geometry Helpers ===
+const HEX_SIZE = 25;
+function hexToPixel(q, r) {
+  const x = HEX_SIZE * 3/2 * q;
+  const y = HEX_SIZE * Math.sqrt(3) * (r + q / 2);
+  return { x, y };
 }
 
-export async function loadState() {
-  const { data } = await supabase.from('lobbies').select('*').eq('id', roomId).single();
-  if (data && data.state) {
-    setState(data.state);
+function drawHex(ctx, x, y, size, color) {
+  ctx.beginPath();
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.PI / 3 * i;
+    const dx = x + size * Math.cos(angle);
+    const dy = y + size * Math.sin(angle);
+    if (i === 0) ctx.moveTo(dx, dy);
+    else ctx.lineTo(dx, dy);
+  }
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.strokeStyle = '#333';
+  ctx.stroke();
+}
+
+// === Render Function ===
+export function render(canvasElement, gameMap = map) {
+  const ctx = canvasElement.getContext('2d');
+  ctx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+  const offsetX = (canvasElement.width - (25 * HEX_SIZE * 1.5)) / 2;
+  const offsetY = (canvasElement.height - (25 * HEX_SIZE * Math.sqrt(3))) / 2;
+
+  for (const row of gameMap) {
+    for (const hex of row) {
+      const { x, y } = hexToPixel(hex.q, hex.r);
+      drawHex(ctx, x + offsetX, y + offsetY, HEX_SIZE, terrainTypes[hex.type].color);
+    }
   }
 }
-
-export async function startGameSync(lobbyId) {
-  currentLobbyId = lobbyId;
-
-  // Subscribe to changes
-  supabase
-    .channel(`room-${lobbyId}`)
-    .on(
-      'postgres_changes',
-      { event: 'UPDATE', schema: 'public', table: 'lobbies', filter: `id=eq.${lobbyId}` },
-      (payload) => {
-        const newState = payload.new.state;
-        if (newState && newState.lastEditedBy !== playerId) {
-          loadGameState(newState);
-        }
-      }
-    )
-    .subscribe();
-}
-
-export function saveGameState() {
-  const state = {
-    map,
-    units,
-    lastEditedBy: playerId
-  };
-
-  if (!currentLobbyId) return;
-
-  supabase
-    .from('lobbies')
-    .update({ state })
-    .eq('id', currentLobbyId)
-    .then(({ error }) => {
-      if (error) console.error('Error saving game state:', error.message);
-    });
-}
-
-function loadGameState(state) {
-  // Overwrite current game state
-  Object.assign(map, state.map);
-  Object.assign(units, state.units);
-  // You would re-render the map here as needed
-  console.log('✅ Game state synced from server');
-}
-
