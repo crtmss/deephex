@@ -48,7 +48,7 @@ export function drawMap() {
   for (let y = 0; y < state.map.length; y++) {
     for (let x = 0; x < state.map[y].length; x++) {
       const tile = state.map[y][x];
-      drawTerrain(ctx, x, y, tile.terrain, hexSize);
+      drawTerrain(ctx, x, y, tile.type, hexSize); // ✅ FIXED: use tile.type
     }
   }
 
@@ -89,7 +89,6 @@ export function showPathCost(path, cost) {
   }
 }
 
-// ✅ NEW: updateGameUI implementation
 export function updateGameUI() {
   const state = getState();
   drawMap();
