@@ -67,3 +67,12 @@ export function findPath(map, start, goal) {
 
   return [];
 }
+
+// ✅ NEW: Calculate total movement cost of a path
+export function calculateMovementCost(path, map) {
+  return path.reduce((total, tile) => {
+    const terrain = map[tile.y]?.[tile.x]?.terrain || 'grass';
+    return total + (terrainCosts[terrain] ?? 1);
+  }, 0);
+}
+
