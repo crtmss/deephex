@@ -1,66 +1,88 @@
-// game/units.js
-
 import { getState, setState } from './game-state.js';
-import { render } from './map.js';
+import { updateGameUI, drawMap, showPathCost } from './ui.js';
+import { calculatePath, calculateMovementCost } from './pathfinding.js';
+import { isTileBlocked } from './terrain.js';
+
+function performAction(unitId, targetX, targetY) {
+  const state = getState();
+  const unit = state.units.find((u) => u.id === unitId && u.owner === state.playerId);
+  if (!unit || state.currentTurn !== state.playerId || unit.ap < 1) return;
+
+  const dx = targetX - unit.x;
+  const dy = targetY - unit.y;
+  const distance = Math.sqrt(dx * dx + dy * dy);
+
+  if (distance <= 3 && !isTileBlocked(targetX, targetY)) {
+    unit.ap -= 1;
+    const targetUnit = state.units.find((u) => u.x === targetX && u.y === targetY);
+    if (targetUnit) {
+      targetUnit.hp -= 1;
+      if (targetUnit.hp <= 0) {
+        state.units = state.units.filter((u) => u.id !== targetUnit.id);
+      }
+    }
+    setState(state);
+    updateGameUI();
+  }
+}
 
 function endTurn() {
   const state = getState();
-  const newTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
-
-  setState({
-    ...state,
-    currentTurn: newTurn,
-    units: state.units.map(unit =>
-      unit.owner === newTurn
-        ? { ...unit, mp: 8, ap: 1 }
-        : unit
-    )
+  state.currentTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
+  state.units.forEach((unit) => {
+    if (unit.owner === state.currentTurn) {
+      unit.mp = 8;
+      unit.ap = 1;
+    }
   });
-
-  console.log(`Turn ended. It's now ${newTurn}'s turn.`);
-  render(document.getElementById('gameCanvas'), getState().map);
-}
-
-function performAction() {
-  const state = getState();
-  const activeUnit = state.units.find(u => u.owner === state.playerId);
-  if (!activeUnit || activeUnit.ap < 1) return;
-
-  // Dummy action: reduce 1 HP from first enemy unit in range
-  const enemy = state.units.find(u => u.owner !== state.playerId);
-  if (enemy) {
-    enemy.hp -= 1;
-    activeUnit.ap -= 1;
-
-    // Remove if dead
-    const remainingUnits = state.units.filter(u => u.hp > 0);
-    setState({ ...state, units: remainingUnits });
-
-    console.log(`${activeUnit.id} attacked ${enemy.id}!`);
-    render(document.getElementById('gameCanvas'), getState().map);
-  }
+  setState(state);
+  updateGameUI();
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const endTurnBtn = document.getElementById('end-turn');
-  if (!endTurnBtn) {
+  const endTurnBtn = document.getElementById('endTurn');
+  const actionBtn = document.getElementById('action');
+
+  if (endTurnBtn) {
+    endTurnBtn.addEventListener('click', endTurn);
+  } else {
     console.warn('End Turn button not found');
-    return;
   }
 
-  endTurnBtn.addEventListener('click', () => {
-    endTurn();
-  });
-
-  const actionBtn = document.getElementById('action-btn');
-  if (!actionBtn) {
+  if (actionBtn) {
+    actionBtn.addEventListener('click', () => {
+      const state = getState();
+      const unit = state.units.find((u) => u.owner === state.playerId);
+      if (unit) {
+        // Placeholder target coordinates for testing
+        performAction(unit.id, unit.x + 1, unit.y);
+      }
+    });
+  } else {
     console.warn('Action button not found');
-    return;
   }
 
-  actionBtn.addEventListener('click', () => {
-    performAction();
-  });
+  // Add hover path cost preview
+  const canvas = document.getElementById('gameCanvas');
+  if (canvas) {
+    canvas.addEventListener('mousemove', (e) => {
+      const state = getState();
+      const unit = state.units.find((u) => u.owner === state.playerId);
+      if (!unit || state.currentTurn !== state.playerId) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = Math.floor(((e.clientX - rect.left) / canvas.width) * state.map[0].length);
+      const y = Math.floor(((e.clientY - rect.top) / canvas.height) * state.map.length);
+
+      const path = calculatePath(unit.x, unit.y, x, y, state.map);
+      if (path) {
+        const cost = calculateMovementCost(path, state.map);
+        showPathCost(path, cost);
+      } else {
+        drawMap();
+      }
+    });
+  }
 });
 
-export { endTurn, performAction };
+export { performAction, endTurn };
