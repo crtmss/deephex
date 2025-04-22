@@ -100,5 +100,3 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
 
   return map;
 }
-
-
