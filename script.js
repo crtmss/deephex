@@ -1,5 +1,12 @@
-import { initLobby } from './game/lobby.js';
+import { createLobby, joinLobby, initLobby } from './game/lobby.js';
+import { endTurn } from './game/turn.js';
+import { performAction } from './game/units.js';
 import { supabase } from './lib/supabase.js';
+
+window.createLobby = createLobby;
+window.joinLobby = joinLobby;
+window.endTurn = endTurn;
+window.performAction = performAction;
 
 document.addEventListener('DOMContentLoaded', async () => {
   const status = document.getElementById('status');
