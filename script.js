@@ -1,3 +1,4 @@
+// script.js
 import { initLobby, createLobby, joinLobby } from './game/lobby.js';
 import { endTurn } from './game/turn.js';
 import { performAction } from './game/units.js';
@@ -25,5 +26,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     console.error('Connection test failed:', err);
   }
 
-  initLobby();
+  initLobby(); // Initialize buttons
 });
