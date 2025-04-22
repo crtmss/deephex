@@ -4,52 +4,51 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>DeepHex Lobby</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
   <main class="menu-container">
     <h1 class="title">DeepHex</h1>
     <ul class="menu">
       <li class="disabled">Start Singleplayer</li>
-      <li id="host-btn">Host Server</li>
-      <li id="connect-btn">Connect to a Server</li>
-      <li id="settings-btn">Settings</li>
+      <li><button id="host-btn">Host Server</button></li>
+      <li><button id="connect-btn">Connect to a Server</button></li>
+      <li><button id="settings-btn">Settings</button></li>
     </ul>
   </main>
 
-  <!-- Settings Modal (Optional) -->
+  <!-- Settings Modal -->
   <div id="settings-modal" class="modal hidden">
     <div class="modal-content">
       <h2>Settings</h2>
       <label>
-        Volume
+        Volume:
         <input type="range" min="0" max="100" value="75" />
       </label>
       <label>
-        Resolution
+        Resolution:
         <select>
           <option>800x600</option>
-          <option>1024x768</option>
           <option>1280x720</option>
           <option>1920x1080</option>
         </select>
       </label>
       <label>
-        Mode
+        Mode:
         <select>
           <option>Windowed</option>
           <option>Fullscreen</option>
         </select>
       </label>
       <label>
-        Language
-        <input type="range" min="0" max="4" value="0" step="1" />
+        Language:
+        <input type="range" min="0" max="4" value="0" />
       </label>
-      <button onclick="document.getElementById('settings-modal').classList.add('hidden')">Close</button>
+      <button id="close-settings">Close</button>
     </div>
   </div>
 
-  <!-- Scripts -->
+  <!-- Load lobby logic -->
   <script type="module" src="game/lobby.js"></script>
 </body>
 </html>
