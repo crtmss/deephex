@@ -18,41 +18,67 @@
     <button id="actionBtn">Action</button>
   </div>
 
+  <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Load and initialize game logic -->
   <script type="module">
     import { supabase } from './lib/supabase.js';
     import { setState } from './game/game-state.js';
-    import { drawMap, updateTurnDisplay } from './game/ui.js';
+    import { drawMap, updateTurnDisplay, createGameUI } from './game/ui.js';
+    import { endTurn, performAction } from './game/units.js';
 
-    const canvas = document.getElementById('gameCanvas');
-    const params = new URLSearchParams(window.location.search);
-    const room_code = params.get('room');
+    document.addEventListener('DOMContentLoaded', async () => {
+      const canvas = document.getElementById('gameCanvas');
+      const params = new URLSearchParams(window.location.search);
+      const room_code = params.get('room');
 
-    if (!room_code) {
-      alert('No room code provided.');
-      throw new Error('Room code missing');
-    }
+      if (!room_code) {
+        alert('No room code provided.');
+        throw new Error('Room code missing');
+      }
 
-    const { data, error } = await supabase
-      .from('lobbies')
-      .select('*')
-      .eq('room_code', room_code)
-      .single();
+      const { data, error } = await supabase
+        .from('lobbies')
+        .select('*')
+        .eq('room_code', room_code)
+        .single();
 
-    if (error) {
-      console.error('Failed to load game state:', error.message);
-      alert('Failed to load room.');
-    } else {
+      if (error) {
+        console.error('Failed to load game state:', error.message);
+        alert('Failed to load room.');
+        return;
+      }
+
+      // Detect player ID based on URL or placeholder logic (can be extended)
+      const urlPlayer = params.get('player');
+      const playerId = urlPlayer === '2' ? 'player2' : 'player1';
+
       setState({
-        playerId: 'player1',
+        playerId,
         roomId: data.id,
         map: data.state.map,
         units: data.state.units,
         currentTurn: data.state.turn
       });
+
+      createGameUI();
       drawMap();
       updateTurnDisplay(data.state.turn);
-    }
+
+      // Hook up buttons
+      const endTurnBtn = document.getElementById('endTurnBtn');
+      const actionBtn = document.getElementById('actionBtn');
+
+      if (endTurnBtn) endTurnBtn.addEventListener('click', endTurn);
+      if (actionBtn) actionBtn.addEventListener('click', () => {
+        const state = window.getState();
+        const unit = state.units.find(u => u.owner === state.playerId);
+        if (unit) {
+          performAction(unit.id, unit.x + 1, unit.y); // demo/test action
+        }
+      });
+    });
   </script>
 </body>
 </html>
