@@ -162,7 +162,8 @@ function initLobby() {
     });
   } else {
     console.warn('Lobby UI elements not found. This is expected if not on index.html.');
-}
+  }
+} // ✅ ← MISSING BRACE FIXED HERE
 
 export {
   createLobby,
