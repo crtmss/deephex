@@ -60,6 +60,7 @@ async function createLobby() {
 
   listenToLobby(roomId);
   console.log(`Lobby created with code: ${room_code}`);
+  // Optionally redirect to game.html?room_code=xxx
 }
 
 async function joinLobby(room_code) {
@@ -111,6 +112,7 @@ async function joinLobby(room_code) {
 
   listenToLobby(data.id);
   console.log(`Joined lobby with code: ${room_code}`);
+  // Optionally redirect to game.html?room_code=xxx
 }
 
 function listenToLobby(roomId) {
@@ -137,24 +139,26 @@ function listenToLobby(roomId) {
 }
 
 function initLobby() {
-  const createBtn = document.getElementById('create-room');
-  const joinBtn = document.getElementById('join-room');
-  const codeInput = document.getElementById('room-code');
+  document.addEventListener('DOMContentLoaded', () => {
+    const createBtn = document.getElementById('create-room');
+    const joinBtn = document.getElementById('join-room');
+    const codeInput = document.getElementById('room-code');
 
-  if (createBtn && joinBtn && codeInput) {
-    createBtn.addEventListener('click', () => {
-      createLobby();
-    });
+    if (createBtn && joinBtn && codeInput) {
+      createBtn.addEventListener('click', () => {
+        createLobby();
+      });
 
-    joinBtn.addEventListener('click', () => {
-      const code = codeInput.value.trim();
-      if (code) {
-        joinLobby(code);
-      }
-    });
-  } else {
-    console.error('Lobby UI elements not found. Check element IDs in HTML.');
-  }
+      joinBtn.addEventListener('click', () => {
+        const code = codeInput.value.trim();
+        if (code) {
+          joinLobby(code);
+        }
+      });
+    } else {
+      console.warn('Lobby UI elements not found. This is expected if not on index.html.');
+    }
+  });
 }
 
 export {
@@ -164,3 +168,4 @@ export {
   roomId,
   playerId
 };
+
