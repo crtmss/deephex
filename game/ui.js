@@ -35,7 +35,6 @@ export function updateTurnDisplay(turn) {
   }
 }
 
-// ✅ Added drawMap
 export function drawMap() {
   const state = getState();
   const canvas = document.getElementById('gameCanvas');
@@ -44,7 +43,7 @@ export function drawMap() {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const hexSize = 20; // or however you're sizing tiles
+  const hexSize = 20;
 
   for (let y = 0; y < state.map.length; y++) {
     for (let x = 0; x < state.map[y].length; x++) {
@@ -58,17 +57,14 @@ export function drawMap() {
   });
 }
 
-// ✅ Added showPathCost
 export function showPathCost(path, cost) {
-  drawMap(); // redraw base map first
+  drawMap();
 
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
   const hexSize = 20;
-
-  // Overlay path
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -84,7 +80,6 @@ export function showPathCost(path, cost) {
   }
   ctx.stroke();
 
-  // Draw cost at final tile
   if (path.length > 0) {
     const last = path[path.length - 1];
     const { x, y } = hexToPixel(last.x, last.y, hexSize);
@@ -92,6 +87,13 @@ export function showPathCost(path, cost) {
     ctx.font = 'bold 14px sans-serif';
     ctx.fillText(`Cost: ${cost}`, x - 20, y - 10);
   }
+}
+
+// ✅ NEW: updateGameUI implementation
+export function updateGameUI() {
+  const state = getState();
+  drawMap();
+  updateTurnDisplay(state.currentTurn);
 }
 
 function hexToPixel(col, row, size) {
@@ -107,3 +109,4 @@ function hexToPixel(col, row, size) {
 
   return { x: x + offsetX, y: y + offsetY };
 }
+
