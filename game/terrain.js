@@ -15,3 +15,10 @@ export function getMovementCost(terrainType) {
 export function isPassable(terrainType) {
   return getMovementCost(terrainType) !== Infinity;
 }
+
+// ✅ NEW: Check if a specific tile is blocked
+export function isTileBlocked(x, y, map) {
+  const tile = map?.[y]?.[x];
+  if (!tile) return true; // out of bounds
+  return !isPassable(tile.terrain);
+}
