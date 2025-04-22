@@ -2,6 +2,7 @@ import { getState, setState } from './game-state.js';
 import { updateGameUI, drawMap, showPathCost } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
+import { createGameUI, updateTurnDisplay } from './ui.js';
 
 function performAction(unitId, targetX, targetY) {
   const state = getState();
