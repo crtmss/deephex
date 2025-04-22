@@ -1,50 +1,166 @@
 import { supabase } from '../lib/supabase.js';
+import { setState } from './game-state.js';
+import { generateMap } from './map.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-  const hostBtn = document.getElementById('host-btn');
-  const connectBtn = document.getElementById('connect-btn');
-  const settingsBtn = document.getElementById('settings-btn');
-  const settingsModal = document.getElementById('settings-modal');
-  const closeSettings = document.getElementById('close-settings');
+let roomId = null;
+let playerId = null;
 
-  if (!hostBtn || !connectBtn || !settingsBtn || !settingsModal) {
-    console.error('Missing UI elements on the page.');
+function generateRoomCode() {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function createLobby() {
+  const room_code = generateRoomCode();
+  const initialMap = generateMap(25, 25, room_code); // Use room_code as seed
+
+  const initialUnits = [
+    {
+      id: 'p1unit',
+      owner: 'player1',
+      x: 2,
+      y: 2,
+      hp: 5,
+      mp: 8,
+      ap: 1
+    }
+  ];
+
+  const { data, error } = await supabase
+    .from('lobbies')
+    .insert([
+      {
+        room_code,
+        player_1: true,
+        player_2: false,
+        state: {
+          map: initialMap,
+          turn: 'player1',
+          units: initialUnits
+        }
+      }
+    ])
+    .select('id, room_code');
+
+  if (error) {
+    console.error('Lobby creation error:', error.message);
+    alert('Failed to create lobby.');
     return;
   }
 
-  hostBtn.addEventListener('click', async () => {
-    const roomCode = Math.random().toString(36).substring(2, 6).toUpperCase();
-    const { data, error } = await supabase
-      .from('lobbies')
-      .insert([
-        {
-          room_code: roomCode,
-          player_1: 'host',
-          state: 'waiting',
-          seed: Math.floor(Math.random() * 10000)
-        }
-      ])
-      .select('id');
+  roomId = data[0].id;
+  playerId = 'player1';
 
-    if (error) {
-      console.error('Lobby creation error:', error.message);
-    } else {
-      window.location.href = `game.html?room=${roomCode}&player=1`;
-    }
+  setState({
+    playerId,
+    roomId,
+    map: initialMap,
+    currentTurn: 'player1',
+    units: initialUnits
   });
 
-  connectBtn.addEventListener('click', () => {
-    const room = prompt('Enter room code:');
-    if (room) {
-      window.location.href = `game.html?room=${room.toUpperCase()}&player=2`;
-    }
+  listenToLobby(roomId);
+  console.log(`Lobby created with code: ${room_code}`);
+}
+
+async function joinLobby(room_code) {
+  const { data, error } = await supabase
+    .from('lobbies')
+    .select('*')
+    .eq('room_code', room_code)
+    .single();
+
+  if (error || !data) {
+    console.error('Lobby join error:', error.message);
+    alert('Failed to join lobby.');
+    return;
+  }
+
+  await supabase
+    .from('lobbies')
+    .update({ player_2: true })
+    .eq('id', data.id);
+
+  roomId = data.id;
+  playerId = 'player2';
+
+  const state = data.state;
+  const newUnit = {
+    id: 'p2unit',
+    owner: 'player2',
+    x: 22,
+    y: 22,
+    hp: 5,
+    mp: 8,
+    ap: 1
+  };
+
+  state.units.push(newUnit);
+
+  await supabase
+    .from('lobbies')
+    .update({ state })
+    .eq('id', data.id);
+
+  setState({
+    playerId,
+    roomId: data.id,
+    map: state.map,
+    currentTurn: state.turn,
+    units: state.units
   });
 
-  settingsBtn.addEventListener('click', () => {
-    settingsModal.classList.remove('hidden');
-  });
+  listenToLobby(data.id);
+  console.log(`Joined lobby with code: ${room_code}`);
+}
 
-  closeSettings.addEventListener('click', () => {
-    settingsModal.classList.add('hidden');
-  });
-});
+function listenToLobby(roomId) {
+  supabase
+    .channel(`lobby-${roomId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'lobbies',
+        filter: `id=eq.${roomId}`
+      },
+      (payload) => {
+        const newState = payload.new.state;
+        setState({
+          map: newState.map,
+          currentTurn: newState.turn,
+          units: newState.units
+        });
+      }
+    )
+    .subscribe();
+}
+
+function initLobby() {
+  const createBtn = document.querySelector('button[onclick="createLobby()"]');
+  const joinBtn = document.querySelector('button[onclick="joinLobby()"]');
+  const codeInput = document.getElementById('roomCode');
+
+  if (createBtn && joinBtn && codeInput) {
+    createBtn.addEventListener('click', () => {
+      createLobby();
+    });
+
+    joinBtn.addEventListener('click', () => {
+      const code = codeInput.value.trim();
+      if (code) {
+        joinLobby(code);
+      }
+    });
+  } else {
+    console.error('Lobby UI elements not found.');
+  }
+}
+
+export {
+  createLobby,
+  joinLobby,
+  initLobby,
+  roomId,
+  playerId
+};
