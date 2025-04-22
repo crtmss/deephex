@@ -137,9 +137,9 @@ function listenToLobby(roomId) {
 }
 
 function initLobby() {
-  const createBtn = document.querySelector('button[onclick="createLobby()"]');
-  const joinBtn = document.querySelector('button[onclick="joinLobby()"]');
-  const codeInput = document.getElementById('roomCode');
+  const createBtn = document.getElementById('create-room');
+  const joinBtn = document.getElementById('join-room');
+  const codeInput = document.getElementById('room-code');
 
   if (createBtn && joinBtn && codeInput) {
     createBtn.addEventListener('click', () => {
@@ -153,7 +153,7 @@ function initLobby() {
       }
     });
   } else {
-    console.error('Lobby UI elements not found.');
+    console.error('Lobby UI elements not found. Check element IDs in HTML.');
   }
 }
 
