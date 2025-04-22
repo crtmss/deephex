@@ -43,19 +43,24 @@ function performAction() {
 
 document.addEventListener('DOMContentLoaded', () => {
   const endTurnBtn = document.getElementById('end-turn');
-  const actionBtn = document.getElementById('perform-action');
-
-  if (endTurnBtn) {
-    endTurnBtn.addEventListener('click', endTurn);
-  } else {
+  if (!endTurnBtn) {
     console.warn('End Turn button not found');
+    return;
   }
 
-  if (actionBtn) {
-    actionBtn.addEventListener('click', performAction);
-  } else {
+  endTurnBtn.addEventListener('click', () => {
+    endTurn();
+  });
+
+  const actionBtn = document.getElementById('action-btn');
+  if (!actionBtn) {
     console.warn('Action button not found');
+    return;
   }
+
+  actionBtn.addEventListener('click', () => {
+    performAction();
+  });
 });
 
 export { endTurn, performAction };
