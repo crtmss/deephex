@@ -1,7 +1,9 @@
 // File: game/ui.js
 
+import { drawTerrain, drawUnit } from './draw.js';
+import { getState } from './game-state.js';
+
 export function createGameUI() {
-  // Create UI container
   const uiContainer = document.createElement('div');
   uiContainer.id = 'ui-container';
   uiContainer.style.position = 'absolute';
@@ -10,19 +12,16 @@ export function createGameUI() {
   uiContainer.style.zIndex = '10';
   document.body.appendChild(uiContainer);
 
-  // Turn Info Display
   const turnInfo = document.createElement('div');
   turnInfo.id = 'turnInfo';
   turnInfo.textContent = 'Current Turn: Loading...';
   uiContainer.appendChild(turnInfo);
 
-  // End Turn Button
   const endTurnBtn = document.createElement('button');
   endTurnBtn.id = 'endTurnBtn';
   endTurnBtn.textContent = 'End Turn';
   uiContainer.appendChild(endTurnBtn);
 
-  // Action Button
   const actionBtn = document.createElement('button');
   actionBtn.id = 'actionBtn';
   actionBtn.textContent = 'Action';
@@ -34,4 +33,77 @@ export function updateTurnDisplay(turn) {
   if (turnInfo) {
     turnInfo.textContent = `Current Turn: ${turn}`;
   }
+}
+
+// ✅ Added drawMap
+export function drawMap() {
+  const state = getState();
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const hexSize = 20; // or however you're sizing tiles
+
+  for (let y = 0; y < state.map.length; y++) {
+    for (let x = 0; x < state.map[y].length; x++) {
+      const tile = state.map[y][x];
+      drawTerrain(ctx, x, y, tile.terrain, hexSize);
+    }
+  }
+
+  state.units.forEach((unit) => {
+    drawUnit(ctx, unit, hexSize);
+  });
+}
+
+// ✅ Added showPathCost
+export function showPathCost(path, cost) {
+  drawMap(); // redraw base map first
+
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const hexSize = 20;
+
+  // Overlay path
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+
+  for (let i = 0; i < path.length; i++) {
+    const { x, y } = path[i];
+    const { x: px, y: py } = hexToPixel(x, y, hexSize);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.stroke();
+
+  // Draw cost at final tile
+  if (path.length > 0) {
+    const last = path[path.length - 1];
+    const { x, y } = hexToPixel(last.x, last.y, hexSize);
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(`Cost: ${cost}`, x - 20, y - 10);
+  }
+}
+
+function hexToPixel(col, row, size) {
+  const SQRT3 = Math.sqrt(3);
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return { x: 0, y: 0 };
+
+  const x = size * SQRT3 * (col + 0.5 * (row % 2));
+  const y = size * 1.5 * row;
+
+  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+
+  return { x: x + offsetX, y: y + offsetY };
 }
