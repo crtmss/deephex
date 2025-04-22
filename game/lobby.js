@@ -1,3 +1,5 @@
+// game/lobby.js
+
 import { supabase } from '../lib/supabase.js';
 import { setState } from './game-state.js';
 import { generateMap } from './map.js';
@@ -11,7 +13,7 @@ function generateRoomCode() {
 
 async function createLobby() {
   const room_code = generateRoomCode();
-  const initialMap = generateMap(25, 25, room_code); // Use room_code as seed
+  const initialMap = generateMap(25, 25, room_code);
 
   const initialUnits = [
     {
@@ -60,7 +62,9 @@ async function createLobby() {
 
   listenToLobby(roomId);
   console.log(`Lobby created with code: ${room_code}`);
-  // Optionally redirect to game.html?room_code=xxx
+
+  // ✅ Redirect to game screen
+  window.location.href = `game.html?room=${room_code}`;
 }
 
 async function joinLobby(room_code) {
@@ -112,7 +116,9 @@ async function joinLobby(room_code) {
 
   listenToLobby(data.id);
   console.log(`Joined lobby with code: ${room_code}`);
-  // Optionally redirect to game.html?room_code=xxx
+
+  // ✅ Redirect to game screen
+  window.location.href = `game.html?room=${room_code}`;
 }
 
 function listenToLobby(roomId) {
@@ -139,26 +145,23 @@ function listenToLobby(roomId) {
 }
 
 function initLobby() {
-  document.addEventListener('DOMContentLoaded', () => {
-    const createBtn = document.getElementById('create-room');
-    const joinBtn = document.getElementById('join-room');
-    const codeInput = document.getElementById('room-code');
+  const createBtn = document.getElementById('create-room');
+  const joinBtn = document.getElementById('join-room');
+  const codeInput = document.getElementById('room-code');
 
-    if (createBtn && joinBtn && codeInput) {
-      createBtn.addEventListener('click', () => {
-        createLobby();
-      });
+  if (createBtn && joinBtn && codeInput) {
+    createBtn.addEventListener('click', () => {
+      createLobby();
+    });
 
-      joinBtn.addEventListener('click', () => {
-        const code = codeInput.value.trim();
-        if (code) {
-          joinLobby(code);
-        }
-      });
-    } else {
-      console.warn('Lobby UI elements not found. This is expected if not on index.html.');
-    }
-  });
+    joinBtn.addEventListener('click', () => {
+      const code = codeInput.value.trim();
+      if (code) {
+        joinLobby(code);
+      }
+    });
+  } else {
+    console.warn('Lobby UI elements not found. This is expected if not on index.html.');
 }
 
 export {
@@ -168,4 +171,5 @@ export {
   roomId,
   playerId
 };
+
 
