@@ -68,11 +68,20 @@ export function findPath(map, start, goal) {
   return [];
 }
 
-// ✅ NEW: Calculate total movement cost of a path
+// ✅ Used by units.js to preview hover paths
+export function calculatePath(startX, startY, targetX, targetY, map) {
+  const start = map[startY]?.[startX];
+  const goal = map[targetY]?.[targetX];
+  if (!start || !goal) return null;
+  return findPath(map, start, goal);
+}
+
+// ✅ Used to calculate total cost of path
 export function calculateMovementCost(path, map) {
   return path.reduce((total, tile) => {
     const terrain = map[tile.y]?.[tile.x]?.terrain || 'grass';
     return total + (terrainCosts[terrain] ?? 1);
   }, 0);
 }
+
 
