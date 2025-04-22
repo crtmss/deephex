@@ -2,7 +2,7 @@ import { getState, setState } from './game-state.js';
 import { updateGameUI, drawMap, showPathCost } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
-import { createGameUI, updateTurnDisplay } from './game/ui.js';
+import { createGameUI, updateTurnDisplay } from './ui.js'; // fixed path
 
 function performAction(unitId, targetX, targetY) {
   const state = getState();
@@ -41,8 +41,8 @@ function endTurn() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  const endTurnBtn = document.getElementById('endTurn');
-  const actionBtn = document.getElementById('action');
+  const endTurnBtn = document.getElementById('endTurnBtn');
+  const actionBtn = document.getElementById('actionBtn');
 
   if (endTurnBtn) {
     endTurnBtn.addEventListener('click', endTurn);
@@ -63,7 +63,6 @@ document.addEventListener('DOMContentLoaded', () => {
     console.warn('Action button not found');
   }
 
-  // Add hover path cost preview
   const canvas = document.getElementById('gameCanvas');
   if (canvas) {
     canvas.addEventListener('mousemove', (e) => {
@@ -87,3 +86,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export { performAction, endTurn };
+
