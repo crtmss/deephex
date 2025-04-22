@@ -1,39 +1,61 @@
-export let units = [
-  { id: 1, type: 'infantry', x: 2, y: 2, hp: 5, owner: 'player_1' },
-  { id: 2, type: 'archer', x: 20, y: 20, hp: 5, owner: 'player_2' }
-];
+// game/units.js
 
-import { getState, updateState } from './game-state.js';
-import { playerId } from '../lib/supabase.js';
+import { getState, setState } from './game-state.js';
+import { render } from './map.js';
 
-let selectedUnit = null;
+function endTurn() {
+  const state = getState();
+  const newTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
 
-export function performAction() {
-  console.log('Not implemented yet');
+  setState({
+    ...state,
+    currentTurn: newTurn,
+    units: state.units.map(unit =>
+      unit.owner === newTurn
+        ? { ...unit, mp: 8, ap: 1 }
+        : unit
+    )
+  });
+
+  console.log(`Turn ended. It's now ${newTurn}'s turn.`);
+  render(document.getElementById('gameCanvas'), getState().map);
 }
 
-document.getElementById('gameCanvas').addEventListener('click', event => {
+function performAction() {
   const state = getState();
-  const canvas = event.target;
-  const rect = canvas.getBoundingClientRect();
-  const x = Math.floor((event.clientX - rect.left) / 40);
-  const y = Math.floor((event.clientY - rect.top) / 35);
+  const activeUnit = state.units.find(u => u.owner === state.playerId);
+  if (!activeUnit || activeUnit.ap < 1) return;
 
-  if (!selectedUnit) {
-    selectedUnit = state.units.find(u => u.owner === state.turn && u.x === x && u.y === y);
+  // Dummy action: reduce 1 HP from first enemy unit in range
+  const enemy = state.units.find(u => u.owner !== state.playerId);
+  if (enemy) {
+    enemy.hp -= 1;
+    activeUnit.ap -= 1;
+
+    // Remove if dead
+    const remainingUnits = state.units.filter(u => u.hp > 0);
+    setState({ ...state, units: remainingUnits });
+
+    console.log(`${activeUnit.id} attacked ${enemy.id}!`);
+    render(document.getElementById('gameCanvas'), getState().map);
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const endTurnBtn = document.getElementById('end-turn');
+  const actionBtn = document.getElementById('perform-action');
+
+  if (endTurnBtn) {
+    endTurnBtn.addEventListener('click', endTurn);
   } else {
-    // Move logic
-    if (state.turn === getPlayerRole(state)) {
-      selectedUnit.x = x;
-      selectedUnit.y = y;
-      updateState(state);
-      selectedUnit = null;
-    }
+    console.warn('End Turn button not found');
+  }
+
+  if (actionBtn) {
+    actionBtn.addEventListener('click', performAction);
+  } else {
+    console.warn('Action button not found');
   }
 });
 
-function getPlayerRole(state) {
-  return state.player_1 === playerId ? 'player_1' : 'player_2';
-}
-
-
+export { endTurn, performAction };
