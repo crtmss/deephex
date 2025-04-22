@@ -15,12 +15,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { error } = await supabase.from('lobbies').select().limit(1);
     if (error) {
       console.error('Supabase connection failed:', error.message);
-      status.textContent = 'Failed to connect to Supabase.';
+      if (status) status.textContent = 'Failed to connect to Supabase.';
     } else {
-      status.textContent = 'Connected to Supabase.';
+      if (status) status.textContent = 'Connected to Supabase.';
     }
   } catch (err) {
-    status.textContent = 'Connection error.';
+    if (status) status.textContent = 'Connection error.';
     console.error('Connection test failed:', err);
   }
 
