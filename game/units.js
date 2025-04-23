@@ -48,7 +48,6 @@ function endTurn() {
 
 document.addEventListener('DOMContentLoaded', () => {
   // 1. Build the in-game UI (buttons, turn display)
-  createGameUI();
 
   // 2. Show the current turn immediately
   updateTurnDisplay(getState().currentTurn);
