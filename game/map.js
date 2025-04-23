@@ -1,11 +1,11 @@
 // game/map.js
 
 export const terrainTypes = {
-  grassland: { movementCost: 1, color: '#34a853' }, // more vivid green
+  grassland: { movementCost: 1, color: '#34a853' },
   sand: { movementCost: 2, color: '#FFF59D' },
   mud: { movementCost: 3, color: '#795548' },
   mountain: { movementCost: Infinity, color: '#9E9E9E', impassable: true },
-  water: { movementCost: Infinity, color: '#80dfff', impassable: true } // new terrain
+  water: { movementCost: Infinity, color: '#4da6ff', impassable: true }
 };
 
 function seededRandom(seed) {
@@ -30,86 +30,66 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
     }))
   );
 
+  // Place water border (1-2 hex thick)
+  for (let r = 0; r < rows; r++) {
+    for (let q = 0; q < cols; q++) {
+      if (r < 2 || r >= rows - 2 || q < 2 || q >= cols - 2) {
+        map[r][q].type = 'water';
+        map[r][q].movementCost = terrainTypes.water.movementCost;
+        map[r][q].impassable = true;
+      }
+    }
+  }
+
   function neighbors(q, r) {
-    const dirs = [[1, 0], [0, 1], [-1, 0], [0, -1], [1, -1], [-1, 1]];
+    const dirs = [[1, 0], [1, -1], [0, -1], [-1, 0], [-1, 1], [0, 1]];
     return dirs
       .map(([dq, dr]) => [q + dq, r + dr])
       .filter(([x, y]) => map[y] && map[y][x]);
   }
 
   function placeBiome(type, size) {
-    let tries = 0;
-    while (tries < 100) {
+    let placed = 0;
+    let attempts = 0;
+
+    while (placed < size && attempts < 500) {
       const q = Math.floor(rand() * cols);
       const r = Math.floor(rand() * rows);
       const tile = map[r][q];
+
       if (tile.type !== 'grassland') {
-        tries++;
+        attempts++;
         continue;
       }
 
       const queue = [[q, r]];
-      let placed = 0;
+      let count = 0;
 
       while (queue.length && placed < size) {
         const [x, y] = queue.shift();
         const t = map[y][x];
-        if (t.type !== 'grassland') continue;
+        if (t.type === 'grassland') {
+          t.type = type;
+          t.movementCost = terrainTypes[type].movementCost;
+          t.impassable = terrainTypes[type].impassable || false;
+          placed++;
+          count++;
+        }
 
-        t.type = type;
-        t.movementCost = terrainTypes[type].movementCost;
-        t.impassable = terrainTypes[type].impassable || false;
-        placed++;
-
-        neighbors(x, y).forEach(([nx, ny]) => {
-          if (Math.random() < 0.6) queue.push([nx, ny]);
-        });
-      }
-      break;
-    }
-  }
-
-  function placeMountainChain(length) {
-    let tries = 0;
-    while (tries < 100) {
-      let q = Math.floor(rand() * cols);
-      let r = Math.floor(rand() * rows);
-      const directions = [[1, 0], [0, 1], [1, -1], [-1, 1]];
-      const [dq, dr] = directions[Math.floor(rand() * directions.length)];
-
-      let placed = 0;
-      while (placed < length) {
-        if (!map[r] || !map[r][q] || map[r][q].type !== 'grassland') break;
-        map[r][q].type = 'mountain';
-        map[r][q].movementCost = Infinity;
-        map[r][q].impassable = true;
-        q += dq;
-        r += dr;
-        placed++;
-      }
-      break;
-    }
-  }
-
-  // Biomes
-  for (let i = 0; i < 3; i++) placeBiome('mud', Math.floor(9 + rand() * 6));
-  for (let i = 0; i < 3; i++) placeBiome('sand', Math.floor(9 + rand() * 6));
-  for (let i = 0; i < 4; i++) placeMountainChain(Math.floor(5 + rand() * 4));
-
-  // Add 1-2 rings of water around the edges
-  for (let r = 0; r < rows; r++) {
-    for (let q = 0; q < cols; q++) {
-      if (
-        r < 2 || r >= rows - 2 ||
-        q < 2 || q >= cols - 2
-      ) {
-        const tile = map[r][q];
-        tile.type = 'water';
-        tile.movementCost = Infinity;
-        tile.impassable = true;
+        if (count < 15) {
+          neighbors(x, y).forEach(([nx, ny]) => {
+            const nTile = map[ny][nx];
+            if (nTile.type === 'grassland') queue.push([nx, ny]);
+          });
+        }
       }
     }
   }
+
+  placeBiome('mud', 30);
+  placeBiome('sand', 30);
+  placeBiome('mountain', 25);
 
   return map;
 }
+
