@@ -34,23 +34,20 @@ export function drawUnit(ctx, unit, size) {
 function terrainColor(type) {
   switch (type) {
     case "mountain": return "#777";
-    case "grassland": return "#34a853"; // ✅ greener grass
+    case "grassland": return "#34a853";  // ✅ Greener grass
     case "mud": return "#6b4c3b";
     case "sand": return "#f4e7b5";
-    case "water": return "#4da6ff";
-    default: return "#ccc";
+    case "water": return "#3399ff";      // ✅ Water color
+    default: return "#cccccc";
   }
 }
 
 function hexToPixel(col, row, size) {
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * size * row;
+  const y = size * 1.5 * row;
 
-  const mapWidth = 25 * size * 1.5;
-  const mapHeight = 25 * size * SQRT3;
-
-  const offsetX = canvas.width / 2 - mapWidth / 2;
-  const offsetY = canvas.height / 2 - mapHeight / 2;
+  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
 
   return { x: x + offsetX, y: y + offsetY };
 }
@@ -58,7 +55,7 @@ function hexToPixel(col, row, size) {
 function getHexCorners(cx, cy, size) {
   const corners = [];
   for (let i = 0; i < 6; i++) {
-    const angle = Math.PI / 180 * (60 * i - 30);
+    const angle = Math.PI / 180 * (60 * i - 30); // -30 for pointy-top
     corners.push({
       x: cx + size * Math.cos(angle),
       y: cy + size * Math.sin(angle)
