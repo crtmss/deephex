@@ -3,7 +3,7 @@ import { initLobby, createLobby, joinLobby } from './game/lobby.js';
 import { endTurn } from './game/turn.js';
 import { performAction } from './game/units.js';
 import { supabase } from './lib/supabase.js';
-import { createGameUI, updateTurnDisplay } from './game/ui.js';
+import { updateTurnDisplay } from './game/ui.js';
 
 window.createLobby = createLobby;
 window.joinLobby = joinLobby;
