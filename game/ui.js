@@ -3,7 +3,6 @@
 import { drawTerrain, drawUnit } from './draw.js';
 import { getState } from './game-state.js';
 
-// ✅ Updates the turn display text (bottom-left)
 export function updateTurnDisplay(turn) {
   const turnInfo = document.getElementById('turn-display');
   if (turnInfo) {
@@ -11,11 +10,10 @@ export function updateTurnDisplay(turn) {
   }
 }
 
-// ✅ Draw the full map and all units
 export function drawMap() {
   const state = getState();
   const canvas = document.getElementById('gameCanvas');
-  if (!canvas) return;
+  if (!canvas || !state.map || state.map.length === 0) return;
 
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -34,7 +32,6 @@ export function drawMap() {
   });
 }
 
-// ✅ Overlay path shadow and display cost label
 export function showPathCost(path, cost) {
   drawMap();
 
@@ -67,14 +64,12 @@ export function showPathCost(path, cost) {
   }
 }
 
-// ✅ Re-renders map and updates turn indicator
 export function updateGameUI() {
   const state = getState();
   drawMap();
   updateTurnDisplay(state.currentTurn);
 }
 
-// ✅ Utility used by showPathCost and draw.js
 function hexToPixel(col, row, size) {
   const SQRT3 = Math.sqrt(3);
   const canvas = document.getElementById('gameCanvas');
@@ -88,3 +83,4 @@ function hexToPixel(col, row, size) {
 
   return { x: x + offsetX, y: y + offsetY };
 }
+
