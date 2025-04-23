@@ -1,7 +1,7 @@
 // game/lobby.js
 
 import { supabase } from '../lib/supabase.js';
-import { setState } from './game-state.js';
+import { setState, getState } from './game-state.js';
 import { generateMap } from './map.js';
 
 let roomId = null;
@@ -63,13 +63,11 @@ async function createLobby() {
   listenToLobby(roomId);
   console.log(`Lobby created with code: ${room_code}`);
 
-  // ✅ Show room code on screen
   const codeDisplay = document.getElementById('lobby-code');
   if (codeDisplay) {
     codeDisplay.textContent = `Room Code: ${room_code}`;
   }
 
-  // ✅ Redirect host to game
   window.location.href = `game.html?room=${room_code}&player=1`;
 }
 
@@ -123,7 +121,6 @@ async function joinLobby(room_code) {
   listenToLobby(data.id);
   console.log(`Joined lobby with code: ${room_code}`);
 
-  // ✅ Redirect player 2 to game
   window.location.href = `game.html?room=${room_code}&player=2`;
 }
 
@@ -140,11 +137,22 @@ function listenToLobby(roomId) {
       },
       (payload) => {
         const newState = payload.new.state;
-        setState({
-          map: newState.map,
-          currentTurn: newState.turn,
-          units: newState.units
-        });
+        const current = getState();
+
+        const hasChanged =
+          JSON.stringify(current.map) !== JSON.stringify(newState.map) ||
+          JSON.stringify(current.units) !== JSON.stringify(newState.units) ||
+          current.currentTurn !== newState.turn;
+
+        if (hasChanged) {
+          setState({
+            map: newState.map,
+            currentTurn: newState.turn,
+            units: newState.units
+          });
+        } else {
+          console.log('[Info] State update skipped (no changes).');
+        }
       }
     )
     .subscribe();
