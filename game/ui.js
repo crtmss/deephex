@@ -3,6 +3,7 @@
 import { drawTerrain, drawUnit } from './draw.js';
 import { getState } from './game-state.js';
 
+// ✅ Updates the turn display text (bottom-left)
 export function updateTurnDisplay(turn) {
   const turnInfo = document.getElementById('turn-display');
   if (turnInfo) {
@@ -10,6 +11,7 @@ export function updateTurnDisplay(turn) {
   }
 }
 
+// ✅ Draw the full map and all units
 export function drawMap() {
   const state = getState();
   const canvas = document.getElementById('gameCanvas');
@@ -23,7 +25,7 @@ export function drawMap() {
   for (let y = 0; y < state.map.length; y++) {
     for (let x = 0; x < state.map[y].length; x++) {
       const tile = state.map[y][x];
-      drawTerrain(ctx, x, y, tile.terrain, hexSize);
+      drawTerrain(ctx, x, y, tile.type, hexSize);
     }
   }
 
@@ -32,4 +34,57 @@ export function drawMap() {
   });
 }
 
+// ✅ Overlay path shadow and display cost label
+export function showPathCost(path, cost) {
+  drawMap();
 
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+
+  const hexSize = 20;
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+
+  for (let i = 0; i < path.length; i++) {
+    const { x, y } = path[i];
+    const { x: px, y: py } = hexToPixel(x, y, hexSize);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
+  }
+  ctx.stroke();
+
+  if (path.length > 0) {
+    const last = path[path.length - 1];
+    const { x, y } = hexToPixel(last.x, last.y, hexSize);
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(`Cost: ${cost}`, x - 20, y - 10);
+  }
+}
+
+// ✅ Re-renders map and updates turn indicator
+export function updateGameUI() {
+  const state = getState();
+  drawMap();
+  updateTurnDisplay(state.currentTurn);
+}
+
+// ✅ Utility used by showPathCost and draw.js
+function hexToPixel(col, row, size) {
+  const SQRT3 = Math.sqrt(3);
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return { x: 0, y: 0 };
+
+  const x = size * SQRT3 * (col + 0.5 * (row % 2));
+  const y = size * 1.5 * row;
+
+  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+
+  return { x: x + offsetX, y: y + offsetY };
+}
