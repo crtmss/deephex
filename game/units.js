@@ -1,4 +1,4 @@
-// File: game/units.js
+// File: units.js
 
 import { getState, setState } from './game-state.js';
 import {
@@ -12,20 +12,20 @@ import { isTileBlocked } from './terrain.js';
 
 function performAction(unitId, targetX, targetY) {
   const state = getState();
-  const unit = state.units.find(u => u.id === unitId && u.owner === state.playerId);
+  const unit = state.units.find((u) => u.id === unitId && u.owner === state.playerId);
   if (!unit || state.currentTurn !== state.playerId || unit.ap < 1) return;
 
   const dx = targetX - unit.x;
   const dy = targetY - unit.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
-  if (distance <= 3 && !isTileBlocked(targetX, targetY, state.map)) {
+  if (distance <= 3 && !isTileBlocked(targetX, targetY)) {
     unit.ap -= 1;
-    const targetUnit = state.units.find(u => u.x === targetX && u.y === targetY);
+    const targetUnit = state.units.find((u) => u.x === targetX && u.y === targetY);
     if (targetUnit) {
       targetUnit.hp -= 1;
       if (targetUnit.hp <= 0) {
-        state.units = state.units.filter(u => u.id !== targetUnit.id);
+        state.units = state.units.filter((u) => u.id !== targetUnit.id);
       }
     }
     setState(state);
@@ -36,7 +36,7 @@ function performAction(unitId, targetX, targetY) {
 function endTurn() {
   const state = getState();
   state.currentTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
-  state.units.forEach(unit => {
+  state.units.forEach((unit) => {
     if (unit.owner === state.currentTurn) {
       unit.mp = 8;
       unit.ap = 1;
@@ -47,27 +47,21 @@ function endTurn() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-  // 1. Build the in-game UI (buttons, turn display)
-
-  // 2. Show the current turn immediately
-  updateTurnDisplay(getState().currentTurn);
-
-  // 3. Wire up End Turn button
   const endTurnBtn = document.getElementById('endTurnBtn');
+  const actionBtn = document.getElementById('actionBtn');
+
   if (endTurnBtn) {
     endTurnBtn.addEventListener('click', endTurn);
   } else {
     console.warn('End Turn button not found');
   }
 
-  // 4. Wire up Action button
-  const actionBtn = document.getElementById('actionBtn');
   if (actionBtn) {
     actionBtn.addEventListener('click', () => {
       const state = getState();
-      const unit = state.units.find(u => u.owner === state.playerId);
+      const unit = state.units.find((u) => u.owner === state.playerId);
       if (unit) {
-        // Example: attack one tile to the right
+        // Placeholder target coordinates for testing
         performAction(unit.id, unit.x + 1, unit.y);
       }
     });
@@ -75,12 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.warn('Action button not found');
   }
 
-  // 5. Set up path-cost preview on hover
   const canvas = document.getElementById('gameCanvas');
   if (canvas) {
-    canvas.addEventListener('mousemove', e => {
+    canvas.addEventListener('mousemove', (e) => {
       const state = getState();
-      const unit = state.units.find(u => u.owner === state.playerId);
+      const unit = state.units.find((u) => u.owner === state.playerId);
       if (!unit || state.currentTurn !== state.playerId) return;
 
       const rect = canvas.getBoundingClientRect();
@@ -99,6 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export { performAction, endTurn };
+
 
 
 
