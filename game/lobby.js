@@ -63,8 +63,14 @@ async function createLobby() {
   listenToLobby(roomId);
   console.log(`Lobby created with code: ${room_code}`);
 
-  // ✅ Redirect to game screen
-  window.location.href = `game.html?room=${room_code}`;
+  // ✅ Show room code on screen
+  const codeDisplay = document.getElementById('lobby-code');
+  if (codeDisplay) {
+    codeDisplay.textContent = `Room Code: ${room_code}`;
+  }
+
+  // ✅ Redirect host to game
+  window.location.href = `game.html?room=${room_code}&player=1`;
 }
 
 async function joinLobby(room_code) {
@@ -117,8 +123,8 @@ async function joinLobby(room_code) {
   listenToLobby(data.id);
   console.log(`Joined lobby with code: ${room_code}`);
 
-  // ✅ Redirect to game screen
-  window.location.href = `game.html?room=${room_code}`;
+  // ✅ Redirect player 2 to game
+  window.location.href = `game.html?room=${room_code}&player=2`;
 }
 
 function listenToLobby(roomId) {
@@ -163,7 +169,7 @@ function initLobby() {
   } else {
     console.warn('Lobby UI elements not found. This is expected if not on index.html.');
   }
-} // ✅ ← MISSING BRACE FIXED HERE
+}
 
 export {
   createLobby,
@@ -172,5 +178,6 @@ export {
   roomId,
   playerId
 };
+
 
 
