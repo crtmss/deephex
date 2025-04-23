@@ -16,15 +16,7 @@ async function createLobby() {
   const initialMap = generateMap(25, 25, room_code);
 
   const initialUnits = [
-    {
-      id: 'p1unit',
-      owner: 'player1',
-      x: 2,
-      y: 2,
-      hp: 5,
-      mp: 8,
-      ap: 1
-    }
+    { id: 'p1unit', owner: 'player1', x: 2, y: 2, hp: 5, mp: 8, ap: 1 }
   ];
 
   const { data, error } = await supabase
@@ -62,12 +54,8 @@ async function createLobby() {
 
   listenToLobby(roomId);
   console.log(`Lobby created with code: ${room_code}`);
-
   const codeDisplay = document.getElementById('lobby-code');
-  if (codeDisplay) {
-    codeDisplay.textContent = `Room Code: ${room_code}`;
-  }
-
+  if (codeDisplay) codeDisplay.textContent = `Room Code: ${room_code}`;
   window.location.href = `game.html?room=${room_code}&player=1`;
 }
 
@@ -96,11 +84,8 @@ async function joinLobby(room_code) {
   const newUnit = {
     id: 'p2unit',
     owner: 'player2',
-    x: 22,
-    y: 22,
-    hp: 5,
-    mp: 8,
-    ap: 1
+    x: 22, y: 22,
+    hp: 5, mp: 8, ap: 1
   };
 
   state.units.push(newUnit);
@@ -120,10 +105,10 @@ async function joinLobby(room_code) {
 
   listenToLobby(data.id);
   console.log(`Joined lobby with code: ${room_code}`);
-
   window.location.href = `game.html?room=${room_code}&player=2`;
 }
 
+// ✅ Fix: only trigger state update if real differences are found
 function listenToLobby(roomId) {
   supabase
     .channel(`lobby-${roomId}`)
@@ -164,18 +149,13 @@ function initLobby() {
   const codeInput = document.getElementById('room-code');
 
   if (createBtn && joinBtn && codeInput) {
-    createBtn.addEventListener('click', () => {
-      createLobby();
-    });
-
+    createBtn.addEventListener('click', () => createLobby());
     joinBtn.addEventListener('click', () => {
       const code = codeInput.value.trim();
-      if (code) {
-        joinLobby(code);
-      }
+      if (code) joinLobby(code);
     });
   } else {
-    console.warn('Lobby UI elements not found. This is expected if not on index.html.');
+    console.warn('Lobby UI elements not found.');
   }
 }
 
@@ -186,6 +166,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
