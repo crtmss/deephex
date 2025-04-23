@@ -1,10 +1,11 @@
 // game/map.js
 
 export const terrainTypes = {
-  grassland: { movementCost: 1, color: '#4CAF50' },
+  grassland: { movementCost: 1, color: '#34a853' }, // more vivid green
   sand: { movementCost: 2, color: '#FFF59D' },
   mud: { movementCost: 3, color: '#795548' },
-  mountain: { movementCost: Infinity, color: '#9E9E9E', impassable: true }
+  mountain: { movementCost: Infinity, color: '#9E9E9E', impassable: true },
+  water: { movementCost: Infinity, color: '#80dfff', impassable: true } // new terrain
 };
 
 function seededRandom(seed) {
@@ -30,10 +31,7 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
   );
 
   function neighbors(q, r) {
-    const dirs = [
-      [1, 0], [0, 1], [-1, 0], [0, -1],
-      [1, -1], [-1, 1]
-    ];
+    const dirs = [[1, 0], [0, 1], [-1, 0], [0, -1], [1, -1], [-1, 1]];
     return dirs
       .map(([dq, dr]) => [q + dq, r + dr])
       .filter(([x, y]) => map[y] && map[y][x]);
@@ -93,10 +91,25 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
     }
   }
 
-  // === Biomes ===
+  // Biomes
   for (let i = 0; i < 3; i++) placeBiome('mud', Math.floor(9 + rand() * 6));
   for (let i = 0; i < 3; i++) placeBiome('sand', Math.floor(9 + rand() * 6));
   for (let i = 0; i < 4; i++) placeMountainChain(Math.floor(5 + rand() * 4));
+
+  // Add 1-2 rings of water around the edges
+  for (let r = 0; r < rows; r++) {
+    for (let q = 0; q < cols; q++) {
+      if (
+        r < 2 || r >= rows - 2 ||
+        q < 2 || q >= cols - 2
+      ) {
+        const tile = map[r][q];
+        tile.type = 'water';
+        tile.movementCost = Infinity;
+        tile.impassable = true;
+      }
+    }
+  }
 
   return map;
 }
