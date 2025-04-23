@@ -8,11 +8,17 @@ let state = {
   map: [],
   playerId: null,
   roomId: null,
+  hasRendered: false
 };
 
 export function setState(newState) {
+  const wasMapEmpty = state.map.length === 0;
   state = { ...state, ...newState };
-  renderIfMapExists();
+
+  if (wasMapEmpty && state.map.length > 0 && !state.hasRendered) {
+    renderIfMapExists();
+    state.hasRendered = true;
+  }
 }
 
 export function updateState(newState) {
@@ -29,4 +35,3 @@ function renderIfMapExists() {
     drawMap();
   }
 }
-
