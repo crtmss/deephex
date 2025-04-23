@@ -9,6 +9,8 @@
 <body>
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
+  <div id="room-code-display" style="margin: 10px; text-align: center; font-weight: bold;"></div>
+
   <div class="sidebar">
     <div id="turn-display">Waiting...</div>
     <div>HP: <span id="unit-hp">-</span></div>
@@ -18,20 +20,20 @@
     <button id="actionBtn">Action</button>
   </div>
 
-  <!-- Supabase client -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- Load and initialize game logic -->
   <script type="module">
     import { supabase } from './lib/supabase.js';
     import { setState } from './game/game-state.js';
-    import { drawMap, updateTurnDisplay, createGameUI } from './game/ui.js';
+    import { drawMap, updateTurnDisplay } from './game/ui.js';
     import { endTurn, performAction } from './game/units.js';
 
     document.addEventListener('DOMContentLoaded', async () => {
       const canvas = document.getElementById('gameCanvas');
       const params = new URLSearchParams(window.location.search);
       const room_code = params.get('room');
+      const codeBox = document.getElementById('room-code-display');
+      if (codeBox) codeBox.textContent = `Room Code: ${room_code}`;
 
       if (!room_code) {
         alert('No room code provided.');
@@ -50,7 +52,6 @@
         return;
       }
 
-      // Detect player ID based on URL or placeholder logic (can be extended)
       const urlPlayer = params.get('player');
       const playerId = urlPlayer === '2' ? 'player2' : 'player1';
 
@@ -65,7 +66,6 @@
       drawMap();
       updateTurnDisplay(data.state.turn);
 
-      // Hook up buttons
       const endTurnBtn = document.getElementById('endTurnBtn');
       const actionBtn = document.getElementById('actionBtn');
 
@@ -74,10 +74,11 @@
         const state = window.getState();
         const unit = state.units.find(u => u.owner === state.playerId);
         if (unit) {
-          performAction(unit.id, unit.x + 1, unit.y); // demo/test action
+          performAction(unit.id, unit.x + 1, unit.y);
         }
       });
     });
   </script>
 </body>
 </html>
+
