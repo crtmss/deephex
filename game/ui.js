@@ -13,12 +13,12 @@ export function updateTurnDisplay(turn) {
 export function drawMap() {
   const state = getState();
   const canvas = document.getElementById('gameCanvas');
-  if (!canvas || !state.map || state.map.length === 0) return;
+  if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  const hexSize = 20;
+  const hexSize = 16;
 
   for (let y = 0; y < state.map.length; y++) {
     for (let x = 0; x < state.map[y].length; x++) {
@@ -39,7 +39,7 @@ export function showPathCost(path, cost) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  const hexSize = 20;
+  const hexSize = 16;
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
   ctx.lineWidth = 2;
   ctx.beginPath();
