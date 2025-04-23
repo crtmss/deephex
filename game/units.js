@@ -5,7 +5,6 @@ import {
   updateGameUI,
   drawMap,
   showPathCost,
-  createGameUI,
   updateTurnDisplay
 } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
