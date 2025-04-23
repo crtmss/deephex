@@ -1,4 +1,4 @@
-// game/draw.js
+// File: game/draw.js
 
 const canvas = document.getElementById('gameCanvas');
 const SQRT3 = Math.sqrt(3);
@@ -25,7 +25,7 @@ export function drawUnit(ctx, unit, size) {
 
   ctx.beginPath();
   ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
-  ctx.fillStyle = unit.owner === 1 ? "red" : "blue";
+  ctx.fillStyle = unit.owner === 'player1' ? "red" : "blue";
   ctx.fill();
   ctx.strokeStyle = "#000";
   ctx.stroke();
@@ -34,21 +34,23 @@ export function drawUnit(ctx, unit, size) {
 function terrainColor(type) {
   switch (type) {
     case "mountain": return "#777";
-    case "grass": return "#3c6";
+    case "grassland": return "#34a853"; // ✅ greener grass
     case "mud": return "#6b4c3b";
     case "sand": return "#f4e7b5";
+    case "water": return "#4da6ff";
     default: return "#ccc";
   }
 }
 
 function hexToPixel(col, row, size) {
-  // Pointy-top hex layout
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * row;
+  const y = size * 1.5 * size * row;
 
-  // ✅ Centering offset using canvas
-  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
-  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+  const mapWidth = 25 * size * 1.5;
+  const mapHeight = 25 * size * SQRT3;
+
+  const offsetX = canvas.width / 2 - mapWidth / 2;
+  const offsetY = canvas.height / 2 - mapHeight / 2;
 
   return { x: x + offsetX, y: y + offsetY };
 }
@@ -56,7 +58,7 @@ function hexToPixel(col, row, size) {
 function getHexCorners(cx, cy, size) {
   const corners = [];
   for (let i = 0; i < 6; i++) {
-    const angle = Math.PI / 180 * (60 * i - 30); // -30 for pointy-top start
+    const angle = Math.PI / 180 * (60 * i - 30);
     corners.push({
       x: cx + size * Math.cos(angle),
       y: cy + size * Math.sin(angle)
