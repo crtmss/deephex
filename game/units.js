@@ -1,5 +1,3 @@
-// File: units.js
-
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
@@ -52,8 +50,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (endTurnBtn) {
     endTurnBtn.addEventListener('click', endTurn);
-  } else {
-    console.warn('End Turn button not found');
   }
 
   if (actionBtn) {
@@ -61,12 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const state = getState();
       const unit = state.units.find((u) => u.owner === state.playerId);
       if (unit) {
-        // Placeholder target coordinates for testing
         performAction(unit.id, unit.x + 1, unit.y);
       }
     });
-  } else {
-    console.warn('Action button not found');
   }
 
   const canvas = document.getElementById('gameCanvas');
