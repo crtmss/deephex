@@ -1,97 +1,93 @@
-// File: units.js
+// File: game/ui.js
 
-import { getState, setState } from './game-state.js';
-import {
-  updateGameUI,
-  drawMap,
-  showPathCost,
-  updateTurnDisplay
-} from './ui.js';
-import { calculatePath, calculateMovementCost } from './pathfinding.js';
-import { isTileBlocked } from './terrain.js';
+import { drawTerrain, drawUnit } from './draw.js';
+import { getState } from './game-state.js';
 
-function performAction(unitId, targetX, targetY) {
-  const state = getState();
-  const unit = state.units.find((u) => u.id === unitId && u.owner === state.playerId);
-  if (!unit || state.currentTurn !== state.playerId || unit.ap < 1) return;
-
-  const dx = targetX - unit.x;
-  const dy = targetY - unit.y;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-
-  if (distance <= 3 && !isTileBlocked(targetX, targetY)) {
-    unit.ap -= 1;
-    const targetUnit = state.units.find((u) => u.x === targetX && u.y === targetY);
-    if (targetUnit) {
-      targetUnit.hp -= 1;
-      if (targetUnit.hp <= 0) {
-        state.units = state.units.filter((u) => u.id !== targetUnit.id);
-      }
-    }
-    setState(state);
-    updateGameUI();
+// ✅ Updates the turn display text (bottom-left)
+export function updateTurnDisplay(turn) {
+  const turnInfo = document.getElementById('turn-display');
+  if (turnInfo) {
+    turnInfo.textContent = `Current Turn: ${turn}`;
   }
 }
 
-function endTurn() {
+// ✅ Draw the full map and all units
+export function drawMap() {
   const state = getState();
-  state.currentTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const hexSize = 20;
+
+  for (let y = 0; y < state.map.length; y++) {
+    for (let x = 0; x < state.map[y].length; x++) {
+      const tile = state.map[y][x];
+      drawTerrain(ctx, x, y, tile.type, hexSize);
+    }
+  }
+
   state.units.forEach((unit) => {
-    if (unit.owner === state.currentTurn) {
-      unit.mp = 8;
-      unit.ap = 1;
-    }
+    drawUnit(ctx, unit, hexSize);
   });
-  setState(state);
-  updateGameUI();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  const endTurnBtn = document.getElementById('endTurnBtn');
-  const actionBtn = document.getElementById('actionBtn');
-
-  if (endTurnBtn) {
-    endTurnBtn.addEventListener('click', endTurn);
-  } else {
-    console.warn('End Turn button not found');
-  }
-
-  if (actionBtn) {
-    actionBtn.addEventListener('click', () => {
-      const state = getState();
-      const unit = state.units.find((u) => u.owner === state.playerId);
-      if (unit) {
-        // Placeholder target coordinates for testing
-        performAction(unit.id, unit.x + 1, unit.y);
-      }
-    });
-  } else {
-    console.warn('Action button not found');
-  }
+// ✅ Overlay path shadow and display cost label
+export function showPathCost(path, cost) {
+  drawMap();
 
   const canvas = document.getElementById('gameCanvas');
-  if (canvas) {
-    canvas.addEventListener('mousemove', (e) => {
-      const state = getState();
-      const unit = state.units.find((u) => u.owner === state.playerId);
-      if (!unit || state.currentTurn !== state.playerId) return;
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
 
-      const rect = canvas.getBoundingClientRect();
-      const x = Math.floor(((e.clientX - rect.left) / canvas.width) * state.map[0].length);
-      const y = Math.floor(((e.clientY - rect.top) / canvas.height) * state.map.length);
+  const hexSize = 20;
+  ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
 
-      const path = calculatePath(unit.x, unit.y, x, y, state.map);
-      if (path) {
-        const cost = calculateMovementCost(path, state.map);
-        showPathCost(path, cost);
-      } else {
-        drawMap();
-      }
-    });
+  for (let i = 0; i < path.length; i++) {
+    const { x, y } = path[i];
+    const { x: px, y: py } = hexToPixel(x, y, hexSize);
+    if (i === 0) {
+      ctx.moveTo(px, py);
+    } else {
+      ctx.lineTo(px, py);
+    }
   }
-});
+  ctx.stroke();
 
-export { performAction, endTurn };
+  if (path.length > 0) {
+    const last = path[path.length - 1];
+    const { x, y } = hexToPixel(last.x, last.y, hexSize);
+    ctx.fillStyle = 'black';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(`Cost: ${cost}`, x - 20, y - 10);
+  }
+}
+
+// ✅ Re-renders map and updates turn indicator
+export function updateGameUI() {
+  const state = getState();
+  drawMap();
+  updateTurnDisplay(state.currentTurn);
+}
+
+// ✅ Utility used by showPathCost and draw.js
+function hexToPixel(col, row, size) {
+  const SQRT3 = Math.sqrt(3);
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return { x: 0, y: 0 };
+
+  const x = size * SQRT3 * (col + 0.5 * (row % 2));
+  const y = size * 1.5 * row;
+
+  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+
+  return { x: x + offsetX, y: y + offsetY };
+}
 
 
 
