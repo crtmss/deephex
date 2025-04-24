@@ -1,6 +1,7 @@
 // File: game/draw.js
 
 const SQRT3 = Math.sqrt(3);
+import { getSelectedUnitId } from './units.js';
 
 export function drawTerrain(ctx, col, row, terrain, size) {
   const { x, y } = hexToPixel(col, row, size);
@@ -28,6 +29,14 @@ export function drawUnit(ctx, unit, size) {
   ctx.fill();
   ctx.strokeStyle = "#000";
   ctx.stroke();
+
+  // Draw white dot if unit is selected
+  if (unit.id === getSelectedUnitId()) {
+    ctx.beginPath();
+    ctx.arc(x, y, size / 6, 0, 2 * Math.PI);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+  }
 }
 
 function terrainColor(type) {
@@ -54,11 +63,9 @@ function getHexCorners(cx, cy, size) {
   const corners = [];
   for (let i = 0; i < 6; i++) {
     const angle = Math.PI / 180 * (60 * i - 30);
-    corners.push({
-      x: cx + size * Math.cos(angle),
-      y: cy + size * Math.sin(angle)
-    });
+    corners.push({ x: cx + size * Math.cos(angle), y: cy + size * Math.sin(angle) });
   }
   return corners;
 }
+
 
