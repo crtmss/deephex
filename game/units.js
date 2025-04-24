@@ -74,6 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const clickedUnit = state.units.find((u) => u.x === col && u.y === row && u.owner === state.playerId);
     if (clickedUnit) {
       selectUnit(clickedUnit);
+      updateGameUI();
     } else if (selectedUnitId) {
       const unit = state.units.find((u) => u.id === selectedUnitId);
       const path = calculatePath(unit.x, unit.y, col, row, state.map);
@@ -106,6 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// 👇 Export for use in draw.js (white dot)
+export function getSelectedUnitId() {
+  return selectedUnitId;
+}
 
 export { performAction, endTurn };
 
