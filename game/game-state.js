@@ -9,7 +9,7 @@ let state = {
   playerId: null,
   roomId: null,
   hasRendered: false,
-  player2Seen: false
+  player2Seen: false // ✅ NEW
 };
 
 export function setState(newState) {
@@ -36,4 +36,5 @@ function renderIfMapExists() {
     drawMap();
   }
 }
+
 
