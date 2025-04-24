@@ -108,14 +108,9 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 
-// 👇 Export for use in draw.js (white dot)
+// ✅ NEW: expose selected unit
 export function getSelectedUnitId() {
   return selectedUnitId;
 }
 
 export { performAction, endTurn };
-
-
-
-
-
