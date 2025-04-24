@@ -49,7 +49,8 @@ async function createLobby() {
     roomId,
     map: initialMap,
     currentTurn: 'player1',
-    units: initialUnits
+    units: initialUnits,
+    player2Seen: false  // Track player 2 presence
   });
 
   listenToLobby(roomId);
@@ -108,7 +109,7 @@ async function joinLobby(room_code) {
   window.location.href = `game.html?room=${room_code}&player=2`;
 }
 
-// ✅ Fix: only trigger state update if real differences are found
+// ✅ Updated to detect when Player 2 connects
 function listenToLobby(roomId) {
   supabase
     .channel(`lobby-${roomId}`)
@@ -129,7 +130,12 @@ function listenToLobby(roomId) {
           JSON.stringify(current.units) !== JSON.stringify(newState.units) ||
           current.currentTurn !== newState.turn;
 
-        if (hasChanged) {
+        const player2Joined = payload.new.player_2 && !current.player2Seen;
+        if (player2Joined) {
+          current.player2Seen = true;
+        }
+
+        if (hasChanged || player2Joined) {
           setState({
             map: newState.map,
             currentTurn: newState.turn,
@@ -166,6 +172,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
