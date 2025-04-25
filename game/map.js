@@ -30,7 +30,6 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
     }))
   );
 
-  // Place water border (1-2 hex thick)
   for (let r = 0; r < rows; r++) {
     for (let q = 0; q < cols; q++) {
       if (r < 2 || r >= rows - 2 || q < 2 || q >= cols - 2) {
@@ -55,8 +54,15 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
     while (placed < size && attempts < 500) {
       const q = Math.floor(rand() * cols);
       const r = Math.floor(rand() * rows);
-      const tile = map[r][q];
 
+      const distFromP1 = Math.sqrt((q - 2) ** 2 + (r - 2) ** 2);
+      const distFromP2 = Math.sqrt((q - 22) ** 2 + (r - 22) ** 2);
+      if ((type === 'mountain') && (distFromP1 <= 3 || distFromP2 <= 3)) {
+        attempts++;
+        continue;
+      }
+
+      const tile = map[r][q];
       if (tile.type !== 'grassland') {
         attempts++;
         continue;
@@ -86,36 +92,12 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
     }
   }
 
-  // Place regular biomes
   placeBiome('mud', 30);
   placeBiome('sand', 30);
-
-  // 🔁 Replace this: placeBiome('mountain', 25);
-  // ✅ Place mountain in multiple smaller chains (6-8 chains, 3–5 tiles each)
-  const mountainChains = 6 + Math.floor(rand() * 3); // 6 to 8 chains
-  for (let i = 0; i < mountainChains; i++) {
-    let q = Math.floor(rand() * (cols - 4)) + 2;
-    let r = Math.floor(rand() * (rows - 4)) + 2;
-    const length = 3 + Math.floor(rand() * 3); // Each chain 3 to 5
-
-    for (let j = 0; j < length; j++) {
-      const tile = map[r][q];
-      if (tile.type === 'grassland') {
-        tile.type = 'mountain';
-        tile.movementCost = terrainTypes.mountain.movementCost;
-        tile.impassable = terrainTypes.mountain.impassable;
-      }
-
-      const nbs = neighbors(q, r);
-      if (nbs.length) {
-        const [nq, nr] = nbs[Math.floor(rand() * nbs.length)];
-        q = nq;
-        r = nr;
-      }
-    }
-  }
+  placeBiome('mountain', 25);
 
   return map;
 }
+
 
 
