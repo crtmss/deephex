@@ -17,14 +17,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     const { error } = await supabase.from('lobbies').select().limit(1);
     if (error) {
       console.error('Supabase connection failed:', error.message);
-      if (status) status.textContent = 'Failed to connect to Supabase.';
+      if (status) {
+        status.textContent = '❌ Failed to connect to Supabase.';
+        status.className = 'status-disconnected';
+      }
     } else {
-      if (status) status.textContent = 'Connected to Supabase.';
+      if (status) {
+        status.textContent = '✅ Connected to Supabase.';
+        status.className = 'status-connected';
+      }
     }
   } catch (err) {
-    if (status) status.textContent = 'Connection error.';
+    if (status) {
+      status.textContent = '❌ Connection error.';
+      status.className = 'status-disconnected';
+    }
     console.error('Connection test failed:', err);
   }
 
   initLobby(); // Initialize buttons
 });
+
