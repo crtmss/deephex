@@ -54,10 +54,9 @@ async function createLobby() {
   });
 
   listenToLobby(roomId);
-  console.log(`Lobby created with code: ${room_code}`);
+
   const codeDisplay = document.getElementById('lobby-code');
   if (codeDisplay) codeDisplay.textContent = `Room Code: ${room_code}`;
-  window.location.href = `game.html?room=${room_code}&player=1`;
 }
 
 async function joinLobby(room_code) {
@@ -109,7 +108,7 @@ async function joinLobby(room_code) {
   window.location.href = `game.html?room=${room_code}&player=2`;
 }
 
-// ✅ Detect when Player 2 connects
+// ✅ Detect when Player 2 connects and redirect Player 1
 function listenToLobby(roomId) {
   supabase
     .channel(`lobby-${roomId}`)
@@ -133,6 +132,15 @@ function listenToLobby(roomId) {
         const player2Joined = payload.new.player_2 && !current.player2Seen;
         if (player2Joined) {
           current.player2Seen = true;
+
+          // ✅ Redirect Player 1 to game now that both players are connected
+          if (current.playerId === 'player1') {
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomCode = payload.new.room_code;
+            if (roomCode) {
+              window.location.href = `game.html?room=${roomCode}&player=1`;
+            }
+          }
         }
 
         if (hasChanged || player2Joined) {
