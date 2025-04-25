@@ -9,7 +9,8 @@ let state = {
   playerId: null,
   roomId: null,
   hasRendered: false,
-  player2Seen: false
+  player2Seen: false,
+  selectedUnitId: null // ✅ NEW
 };
 
 export function setState(newState) {
@@ -23,7 +24,7 @@ export function setState(newState) {
 
   const canvas = document.getElementById('gameCanvas');
   if (canvas && state.map.length > 0) {
-    drawMap(); // ✅ Ensure redraw
+    drawMap();
   }
 }
 
