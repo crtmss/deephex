@@ -9,6 +9,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
+  flex-direction: column; /* ✅ Needed for stacking room code + canvas vertically */
 }
 
 /* Main Menu Container */
@@ -163,9 +164,20 @@ input#room-code {
   color: #fff;
 }
 
-/* Game Canvas (hidden unless activated) */
-#gameCanvas {
-  display: none;
+/* Game Canvas */
+canvas#gameCanvas {
+  display: block;
+  margin: 0 auto;
+  margin-top: 20px; /* ✅ Push canvas down */
+}
+
+/* Room code display above canvas */
+.above-canvas {
+  text-align: center;
+  font-weight: bold;
+  color: #00ffff;
+  font-size: 1.2rem;
+  margin-bottom: 10px;
 }
 
 /* Waiting message for host */
@@ -179,17 +191,5 @@ input#room-code {
   display: none;
 }
 
-.above-canvas {
-  text-align: center;
-  font-weight: bold;
-  color: #00ffff;
-  margin-bottom: 10px;
-}
-
-canvas#gameCanvas {
-  display: block;
-  margin: 0 auto;
-  margin-top: 20px;
-}
 
 
