@@ -50,7 +50,7 @@ async function createLobby() {
     map: initialMap,
     currentTurn: 'player1',
     units: initialUnits,
-    player2Seen: false  // Track player 2 presence
+    player2Seen: false
   });
 
   listenToLobby(roomId);
@@ -109,7 +109,7 @@ async function joinLobby(room_code) {
   window.location.href = `game.html?room=${room_code}&player=2`;
 }
 
-// ✅ Updated to detect when Player 2 connects
+// ✅ Detect when Player 2 connects
 function listenToLobby(roomId) {
   supabase
     .channel(`lobby-${roomId}`)
@@ -172,6 +172,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
