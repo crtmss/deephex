@@ -179,4 +179,17 @@ input#room-code {
   display: none;
 }
 
+.above-canvas {
+  text-align: center;
+  font-weight: bold;
+  color: #00ffff;
+  margin-bottom: 10px;
+}
+
+canvas#gameCanvas {
+  display: block;
+  margin: 0 auto;
+  margin-top: 20px;
+}
+
 
