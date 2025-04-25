@@ -9,7 +9,7 @@ let state = {
   playerId: null,
   roomId: null,
   hasRendered: false,
-  player2Seen: false // ✅ NEW
+  player2Seen: false
 };
 
 export function setState(newState) {
@@ -19,6 +19,12 @@ export function setState(newState) {
   if (wasMapEmpty && state.map.length > 0 && !state.hasRendered) {
     renderIfMapExists();
     state.hasRendered = true;
+  }
+
+  // ✅ Force UI redraw when state updates
+  const canvas = document.getElementById('gameCanvas');
+  if (canvas && state.map.length > 0) {
+    drawMap();
   }
 }
 
@@ -33,10 +39,11 @@ export function getState() {
 function renderIfMapExists() {
   const canvas = document.getElementById('gameCanvas');
   if (canvas && state.map.length > 0) {
-    canvas.style.display = 'block'; // ✅ Ensure canvas is visible
+    canvas.style.display = 'block';
     drawMap();
   }
 }
+
 
 
 
