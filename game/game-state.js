@@ -21,10 +21,9 @@ export function setState(newState) {
     state.hasRendered = true;
   }
 
-  // ✅ Force UI redraw when state updates
   const canvas = document.getElementById('gameCanvas');
   if (canvas && state.map.length > 0) {
-    drawMap();
+    drawMap(); // ✅ Ensure redraw
   }
 }
 
@@ -43,6 +42,7 @@ function renderIfMapExists() {
     drawMap();
   }
 }
+
 
 
 
