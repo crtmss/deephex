@@ -168,3 +168,15 @@ input#room-code {
   display: none;
 }
 
+/* Waiting message for host */
+#waiting-msg {
+  font-size: 1.1rem;
+  color: #ffcc00;
+  margin-top: 10px;
+}
+
+.hidden {
+  display: none;
+}
+
+
