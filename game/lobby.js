@@ -55,12 +55,8 @@ async function createLobby() {
 
   listenToLobby(roomId);
   console.log(`Lobby created with code: ${room_code}`);
-
   const codeDisplay = document.getElementById('lobby-code');
   if (codeDisplay) codeDisplay.textContent = `Room Code: ${room_code}`;
-
-  const waitingMsg = document.getElementById('waiting-msg');
-  if (waitingMsg) waitingMsg.classList.remove('hidden');
 }
 
 async function joinLobby(room_code) {
@@ -112,7 +108,6 @@ async function joinLobby(room_code) {
   window.location.href = `game.html?room=${room_code}&player=2`;
 }
 
-// ✅ Detect when Player 2 connects and redirect Player 1
 function listenToLobby(roomId) {
   supabase
     .channel(`lobby-${roomId}`)
@@ -128,6 +123,8 @@ function listenToLobby(roomId) {
         const newState = payload.new.state;
         const current = getState();
 
+        console.log('[Lobby Sync] Remote state received:', newState);
+
         const hasChanged =
           JSON.stringify(current.map) !== JSON.stringify(newState.map) ||
           JSON.stringify(current.units) !== JSON.stringify(newState.units) ||
@@ -136,17 +133,6 @@ function listenToLobby(roomId) {
         const player2Joined = payload.new.player_2 && !current.player2Seen;
         if (player2Joined) {
           current.player2Seen = true;
-
-          if (current.playerId === 'player1') {
-            // ✅ Hide the waiting message
-            const waitingMsg = document.getElementById('waiting-msg');
-            if (waitingMsg) waitingMsg.classList.add('hidden');
-
-            const roomCode = payload.new.room_code;
-            if (roomCode) {
-              window.location.href = `game.html?room=${roomCode}&player=1`;
-            }
-          }
         }
 
         if (hasChanged || player2Joined) {
@@ -186,6 +172,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
