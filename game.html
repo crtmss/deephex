@@ -9,7 +9,7 @@
 <body>
 
   <!-- Room code shown above canvas -->
-  <div id="room-code-display" class="above-canvas"></div>
+  <div id="room-code-display" class="above-canvas">Room Code: Loading...</div>
 
   <!-- Main canvas -->
   <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -55,7 +55,7 @@
         .eq('room_code', room_code)
         .single();
 
-      if (error) {
+      if (error || !data) {
         alert('Could not load lobby.');
         console.error(error);
         return;
@@ -68,7 +68,8 @@
         roomId: data.id,
         map: state.map,
         units: state.units,
-        currentTurn: state.turn
+        currentTurn: state.turn,
+        selectedUnitId: null
       });
 
       drawMap();
@@ -105,4 +106,5 @@
 
 </body>
 </html>
+
 
