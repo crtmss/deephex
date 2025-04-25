@@ -58,6 +58,8 @@ button {
   border-radius: 10px;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%;
+  max-width: 200px;
 }
 
 button:hover {
@@ -72,6 +74,7 @@ input#room-code {
   border: none;
   font-size: 1em;
   width: 100%;
+  max-width: 160px;
   background: rgba(255, 255, 255, 0.1);
   color: #fff;
   text-align: center;
@@ -83,12 +86,33 @@ input#room-code {
   text-decoration: line-through;
 }
 
-/* Lobby code & status display */
-#status, #lobby-code {
-  font-size: 1em;
-  margin-top: 10px;
-  color: #0ff;
+/* Footer connection status + room code */
+#lobby-footer {
+  position: fixed;
+  bottom: 20px;
+  width: 100%;
   text-align: center;
+  font-size: 1rem;
+  color: #0ff;
+}
+
+#status {
+  margin-top: 5px;
+  font-weight: bold;
+}
+
+.status-connected {
+  color: #00ff88;
+}
+
+.status-disconnected {
+  color: #ff4444;
+}
+
+#lobby-code {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #0ff;
 }
 
 /* Modal Styles */
@@ -143,3 +167,4 @@ input#room-code {
 #gameCanvas {
   display: none;
 }
+
