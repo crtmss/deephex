@@ -56,7 +56,6 @@ async function createLobby() {
   const codeDisplay = document.getElementById('lobby-code');
   if (codeDisplay) codeDisplay.textContent = `Room Code: ${room_code}`;
 
-  // ✅ Redirect to GitHub-hosted game page
   window.location.href = `https://crtmss.github.io/deephex/game.html?room=${room_code}&player=1`;
 }
 
@@ -130,15 +129,14 @@ function listenToLobby(roomId) {
           current.currentTurn !== newState.turn;
 
         const player2Joined = payload.new.player_2 && !current.player2Seen;
-        if (player2Joined) {
-          current.player2Seen = true;
-        }
 
-        if (hasChanged || player2Joined) {
+        if (player2Joined || hasChanged) {
           setState({
+            ...current,
             map: newState.map,
             currentTurn: newState.turn,
-            units: newState.units
+            units: newState.units,
+            player2Seen: true
           });
         } else {
           console.log('[Info] State update skipped (no changes).');
@@ -171,6 +169,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
