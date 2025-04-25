@@ -33,9 +33,11 @@ export function getState() {
 function renderIfMapExists() {
   const canvas = document.getElementById('gameCanvas');
   if (canvas && state.map.length > 0) {
+    canvas.style.display = 'block'; // ✅ Ensure canvas is visible
     drawMap();
   }
 }
+
 
 
 
