@@ -86,10 +86,36 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
     }
   }
 
+  // Place regular biomes
   placeBiome('mud', 30);
   placeBiome('sand', 30);
-  placeBiome('mountain', 25);
+
+  // 🔁 Replace this: placeBiome('mountain', 25);
+  // ✅ Place mountain in multiple smaller chains (6-8 chains, 3–5 tiles each)
+  const mountainChains = 6 + Math.floor(rand() * 3); // 6 to 8 chains
+  for (let i = 0; i < mountainChains; i++) {
+    let q = Math.floor(rand() * (cols - 4)) + 2;
+    let r = Math.floor(rand() * (rows - 4)) + 2;
+    const length = 3 + Math.floor(rand() * 3); // Each chain 3 to 5
+
+    for (let j = 0; j < length; j++) {
+      const tile = map[r][q];
+      if (tile.type === 'grassland') {
+        tile.type = 'mountain';
+        tile.movementCost = terrainTypes.mountain.movementCost;
+        tile.impassable = terrainTypes.mountain.impassable;
+      }
+
+      const nbs = neighbors(q, r);
+      if (nbs.length) {
+        const [nq, nr] = nbs[Math.floor(rand() * nbs.length)];
+        q = nq;
+        r = nr;
+      }
+    }
+  }
 
   return map;
 }
+
 
