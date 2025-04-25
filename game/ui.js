@@ -16,7 +16,7 @@ export function drawMap() {
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // ✅ Clear before draw
 
   const hexSize = 16;
 
