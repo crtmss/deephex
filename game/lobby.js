@@ -1,5 +1,3 @@
-// game/lobby.js
-
 import { supabase } from '../lib/supabase.js';
 import { setState, getState } from './game-state.js';
 import { generateMap } from './map.js';
@@ -57,6 +55,9 @@ async function createLobby() {
   console.log(`Lobby created with code: ${room_code}`);
   const codeDisplay = document.getElementById('lobby-code');
   if (codeDisplay) codeDisplay.textContent = `Room Code: ${room_code}`;
+
+  // ✅ Redirect to GitHub-hosted game page
+  window.location.href = `https://crtmss.github.io/deephex/game.html?room=${room_code}&player=1`;
 }
 
 async function joinLobby(room_code) {
@@ -122,8 +123,6 @@ function listenToLobby(roomId) {
       (payload) => {
         const newState = payload.new.state;
         const current = getState();
-
-        console.log('[Lobby Sync] Remote state received:', newState);
 
         const hasChanged =
           JSON.stringify(current.map) !== JSON.stringify(newState.map) ||
