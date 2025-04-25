@@ -39,6 +39,8 @@ function performAction(unitId, targetX, targetY) {
 
 function endTurn() {
   const state = getState();
+  if (state.playerId !== state.currentTurn) return; // ✅ Prevent ending out of turn
+
   state.currentTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
   state.units.forEach((unit) => {
     if (unit.owner === state.currentTurn) {
@@ -65,34 +67,33 @@ function animateMovement(unit, path, callback) {
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('gameCanvas');
+
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     const col = Math.floor(((e.clientX - rect.left) / canvas.width) * 25);
-    const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
+    const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25) - 1; // Shift grid down
 
     const state = getState();
-    const clickedUnit = state.units.find((u) => u.x === col && u.y === row && u.owner === state.playerId);
-    if (clickedUnit) {
-      selectUnit(clickedUnit);
-      updateGameUI();
-    } else if (selectedUnitId) {
-      const unit = state.units.find((u) => u.id === selectedUnitId);
-      const path = calculatePath(unit.x, unit.y, col, row, state.map);
-      const cost = calculateMovementCost(path, state.map);
-      if (unit.mp >= cost) {
-        unit.mp -= cost;
-        animateMovement(unit, path, () => {
-          setState(state);
-          updateGameUI();
-        });
-      }
+    if (!state.map?.length || state.currentTurn !== state.playerId) return;
+
+    const unit = state.units.find((u) => u.id === selectedUnitId);
+    if (!unit) return;
+
+    const path = calculatePath(unit.x, unit.y, col, row, state.map);
+    const cost = calculateMovementCost(path, state.map);
+    if (unit.mp >= cost) {
+      unit.mp -= cost;
+      animateMovement(unit, path, () => {
+        setState(state);
+        updateGameUI();
+      });
     }
   });
 
   canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
     const col = Math.floor(((e.clientX - rect.left) / canvas.width) * 25);
-    const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
+    const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25) - 1;
 
     const state = getState();
     const unit = state.units.find((u) => u.id === selectedUnitId);
@@ -107,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ✅ Select Unit Button logic
   const selectBtn = document.getElementById('selectUnitBtn');
   if (selectBtn) {
     selectBtn.addEventListener('click', () => {
@@ -130,4 +130,5 @@ export function getSelectedUnitId() {
 }
 
 export { performAction, endTurn };
+
 
