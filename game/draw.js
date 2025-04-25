@@ -1,7 +1,7 @@
 // File: game/draw.js
 
 const SQRT3 = Math.sqrt(3);
-import { getSelectedUnitId } from './units.js';
+import { getState } from './game-state.js';
 
 export function drawTerrain(ctx, col, row, terrain, size) {
   const { x, y } = hexToPixel(col, row, size);
@@ -31,7 +31,8 @@ export function drawUnit(ctx, unit, size) {
   ctx.stroke();
 
   // ✅ Draw white dot if the unit is currently selected
-  if (unit.id === getSelectedUnitId()) {
+  const selectedUnitId = getState().selectedUnitId;
+  if (unit.id === selectedUnitId) {
     ctx.beginPath();
     ctx.arc(x, y, size / 6, 0, 2 * Math.PI);
     ctx.fillStyle = 'white';
@@ -70,7 +71,6 @@ function getHexCorners(cx, cy, size) {
   }
   return corners;
 }
-
 
 
 
