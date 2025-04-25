@@ -106,9 +106,25 @@ document.addEventListener('DOMContentLoaded', () => {
       drawMap();
     }
   });
+
+  // ✅ Select Unit Button logic
+  const selectBtn = document.getElementById('selectUnitBtn');
+  if (selectBtn) {
+    selectBtn.addEventListener('click', () => {
+      const state = getState();
+      if (state.currentTurn === state.playerId) {
+        const unit = state.units.find((u) => u.owner === state.playerId);
+        if (unit) {
+          selectedUnitId = unit.id;
+          updateGameUI();
+        }
+      } else {
+        alert('It is not your turn.');
+      }
+    });
+  }
 });
 
-// ✅ NEW: expose selected unit
 export function getSelectedUnitId() {
   return selectedUnitId;
 }
