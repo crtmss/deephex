@@ -16,7 +16,7 @@ export function drawMap() {
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // ✅ Clear before draw
+  ctx.clearRect(0, 0, canvas.width, canvas.height); // ✅ Always clear before redraw
 
   const hexSize = 16;
 
@@ -34,12 +34,11 @@ export function drawMap() {
 
 export function showPathCost(path, cost) {
   drawMap();
-
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-
   const hexSize = 16;
+
   ctx.strokeStyle = 'rgba(0, 0, 0, 0.6)';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -47,11 +46,8 @@ export function showPathCost(path, cost) {
   for (let i = 0; i < path.length; i++) {
     const { x, y } = path[i];
     const { x: px, y: py } = hexToPixel(x, y, hexSize);
-    if (i === 0) {
-      ctx.moveTo(px, py);
-    } else {
-      ctx.lineTo(px, py);
-    }
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
   }
   ctx.stroke();
 
@@ -76,11 +72,12 @@ function hexToPixel(col, row, size) {
   if (!canvas) return { x: 0, y: 0 };
 
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * row;
+  const y = size * 1.5 * (row + 1); // ✅ Shift map down by 1 hex
 
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
 
   return { x: x + offsetX, y: y + offsetY };
 }
+
 
