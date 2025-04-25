@@ -54,9 +54,13 @@ async function createLobby() {
   });
 
   listenToLobby(roomId);
+  console.log(`Lobby created with code: ${room_code}`);
 
   const codeDisplay = document.getElementById('lobby-code');
   if (codeDisplay) codeDisplay.textContent = `Room Code: ${room_code}`;
+
+  const waitingMsg = document.getElementById('waiting-msg');
+  if (waitingMsg) waitingMsg.classList.remove('hidden');
 }
 
 async function joinLobby(room_code) {
@@ -133,9 +137,11 @@ function listenToLobby(roomId) {
         if (player2Joined) {
           current.player2Seen = true;
 
-          // ✅ Redirect Player 1 to game now that both players are connected
           if (current.playerId === 'player1') {
-            const urlParams = new URLSearchParams(window.location.search);
+            // ✅ Hide the waiting message
+            const waitingMsg = document.getElementById('waiting-msg');
+            if (waitingMsg) waitingMsg.classList.add('hidden');
+
             const roomCode = payload.new.room_code;
             if (roomCode) {
               window.location.href = `game.html?room=${roomCode}&player=1`;
@@ -180,6 +186,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
