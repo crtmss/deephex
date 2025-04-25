@@ -30,7 +30,7 @@ export function drawUnit(ctx, unit, size) {
   ctx.strokeStyle = "#000";
   ctx.stroke();
 
-  // ✅ NEW: Draw white dot if unit is selected
+  // ✅ Draw white dot if the unit is currently selected
   if (unit.id === getSelectedUnitId()) {
     ctx.beginPath();
     ctx.arc(x, y, size / 6, 0, 2 * Math.PI);
@@ -63,10 +63,14 @@ function getHexCorners(cx, cy, size) {
   const corners = [];
   for (let i = 0; i < 6; i++) {
     const angle = Math.PI / 180 * (60 * i - 30);
-    corners.push({ x: cx + size * Math.cos(angle), y: cy + size * Math.sin(angle) });
+    corners.push({
+      x: cx + size * Math.cos(angle),
+      y: cy + size * Math.sin(angle)
+    });
   }
   return corners;
 }
+
 
 
 
