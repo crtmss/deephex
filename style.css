@@ -6,10 +6,9 @@ body {
   background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   color: #ffffff;
   display: flex;
-  justify-content: center;
+  flex-direction: column; /* ✅ For stacking room code + canvas */
   align-items: center;
   height: 100vh;
-  flex-direction: column; /* ✅ Needed for stacking room code + canvas vertically */
 }
 
 /* Main Menu Container */
@@ -168,7 +167,7 @@ input#room-code {
 canvas#gameCanvas {
   display: block;
   margin: 0 auto;
-  margin-top: 20px; /* ✅ Push canvas down */
+  margin-top: 28px; /* ✅ Visually push hex grid down 1 hex */
 }
 
 /* Room code display above canvas */
@@ -177,7 +176,47 @@ canvas#gameCanvas {
   font-weight: bold;
   color: #00ffff;
   font-size: 1.2rem;
+  margin-top: 20px;
   margin-bottom: 10px;
+}
+
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  right: 20px;
+  top: 100px;
+  background-color: rgba(0, 0, 0, 0.6);
+  padding: 20px;
+  border-radius: 10px;
+  border: 1px solid #00c6ff;
+  box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+}
+
+.sidebar button {
+  margin-top: 8px;
+  width: 100%;
+  font-size: 1em;
+  padding: 10px;
+  background: linear-gradient(to right, #0072ff, #00c6ff);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.sidebar button:hover {
+  box-shadow: 0 0 12px rgba(0, 198, 255, 0.6);
+}
+
+/* Turn Info */
+#turn-display {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+}
+
+/* Unit Stats */
+.sidebar div {
+  margin-bottom: 6px;
 }
 
 /* Waiting message for host */
@@ -190,6 +229,7 @@ canvas#gameCanvas {
 .hidden {
   display: none;
 }
+
 
 
 
