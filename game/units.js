@@ -1,3 +1,5 @@
+// game/units.js
+
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
@@ -7,12 +9,6 @@ import {
 } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
-
-let selectedUnitId = null;
-
-function selectUnit(unit) {
-  selectedUnitId = unit.id;
-}
 
 function performAction(unitId, targetX, targetY) {
   const state = getState();
@@ -33,14 +29,12 @@ function performAction(unitId, targetX, targetY) {
       }
     }
     setState(state);
-    updateGameUI();
   }
 }
 
 function endTurn() {
   const state = getState();
-  if (state.playerId !== state.currentTurn) return; // ✅ Prevent ending out of turn
-
+  if (state.currentTurn !== state.playerId) return;
   state.currentTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
   state.units.forEach((unit) => {
     if (unit.owner === state.currentTurn) {
@@ -49,7 +43,6 @@ function endTurn() {
     }
   });
   setState(state);
-  updateGameUI();
 }
 
 function animateMovement(unit, path, callback) {
@@ -61,42 +54,40 @@ function animateMovement(unit, path, callback) {
   unit.x = nextStep.x;
   unit.y = nextStep.y;
   setState(getState());
-  updateGameUI();
   setTimeout(() => animateMovement(unit, rest, callback), 150);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('gameCanvas');
-
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     const col = Math.floor(((e.clientX - rect.left) / canvas.width) * 25);
-    const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25) - 1; // Shift grid down
+    const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
 
     const state = getState();
-    if (!state.map?.length || state.currentTurn !== state.playerId) return;
-
-    const unit = state.units.find((u) => u.id === selectedUnitId);
-    if (!unit) return;
-
-    const path = calculatePath(unit.x, unit.y, col, row, state.map);
-    const cost = calculateMovementCost(path, state.map);
-    if (unit.mp >= cost) {
-      unit.mp -= cost;
-      animateMovement(unit, path, () => {
-        setState(state);
-        updateGameUI();
-      });
+    const clickedUnit = state.units.find((u) => u.x === col && u.y === row && u.owner === state.playerId);
+    if (clickedUnit) {
+      setState({ ...state, selectedUnitId: clickedUnit.id });
+    } else if (state.selectedUnitId) {
+      const unit = state.units.find((u) => u.id === state.selectedUnitId);
+      const path = calculatePath(unit.x, unit.y, col, row, state.map);
+      const cost = calculateMovementCost(path, state.map);
+      if (unit.mp >= cost) {
+        unit.mp -= cost;
+        animateMovement(unit, path, () => {
+          setState(state);
+        });
+      }
     }
   });
 
   canvas.addEventListener('mousemove', (e) => {
     const rect = canvas.getBoundingClientRect();
     const col = Math.floor(((e.clientX - rect.left) / canvas.width) * 25);
-    const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25) - 1;
+    const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
 
     const state = getState();
-    const unit = state.units.find((u) => u.id === selectedUnitId);
+    const unit = state.units.find((u) => u.id === state.selectedUnitId);
     if (!unit || state.currentTurn !== state.playerId) return;
 
     const path = calculatePath(unit.x, unit.y, col, row, state.map);
@@ -115,8 +106,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.currentTurn === state.playerId) {
         const unit = state.units.find((u) => u.owner === state.playerId);
         if (unit) {
-          selectedUnitId = unit.id;
-          updateGameUI();
+          setState({ ...state, selectedUnitId: unit.id });
         }
       } else {
         alert('It is not your turn.');
@@ -124,11 +114,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 });
-
-export function getSelectedUnitId() {
-  return selectedUnitId;
-}
-
-export { performAction, endTurn };
 
 
