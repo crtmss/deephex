@@ -26,9 +26,11 @@ async function createLobby() {
       room_code,
       player_1: true,
       player_2: false,
-      map: initialMap,
-      units: initialUnits,
-      turn: 'player1'
+      state: {
+        map: initialMap,
+        units: initialUnits,
+        turn: 'player1'
+      }
     }])
     .select('id, room_code');
 
@@ -80,9 +82,9 @@ async function joinLobby(room_code) {
   playerId = 'player2';
 
   const state = {
-    map: data.map,
-    units: data.units,
-    turn: data.turn
+    map: data.state.map,       // ✅ FIXED (use data.state)
+    units: data.state.units,
+    turn: data.state.turn
   };
 
   const newUnit = {
@@ -99,7 +101,7 @@ async function joinLobby(room_code) {
 
   await supabase
     .from('lobbies')
-    .update({ units: state.units })
+    .update({ state: { map: state.map, units: state.units, turn: state.turn } })
     .eq('id', data.id);
 
   setState({
@@ -119,7 +121,6 @@ async function joinLobby(room_code) {
 function listenToLobby(roomId) {
   const channel = supabase.channel(`lobby-${roomId}`);
 
-  // ✅ Separated Events for better control:
   channel.on('postgres_changes', {
     event: 'UPDATE',
     schema: 'public',
@@ -127,27 +128,26 @@ function listenToLobby(roomId) {
     filter: `id=eq.${roomId}`
   }, (payload) => {
     const current = getState();
-    const newUnits = payload.new.units;
-    const newTurn = payload.new.turn;
+    const newState = payload.new.state;
 
     let updated = false;
 
-    // 🔵 Update units
-    if (newUnits && JSON.stringify(current.units) !== JSON.stringify(newUnits)) {
+    // 🔵 Units sync
+    if (newState.units && JSON.stringify(current.units) !== JSON.stringify(newState.units)) {
       console.log('[Realtime] Units updated.');
-      setState({ ...current, units: newUnits });
+      setState({ ...current, units: newState.units });
       updated = true;
     }
 
-    // 🟠 Update turn
-    if (newTurn && current.currentTurn !== newTurn) {
+    // 🟠 Turn sync
+    if (newState.turn && current.currentTurn !== newState.turn) {
       console.log('[Realtime] Turn changed.');
-      setState({ ...getState(), currentTurn: newTurn });
+      setState({ ...getState(), currentTurn: newState.turn });
       updated = true;
     }
 
     if (updated) {
-      updateGameUI(); // ✅ Refresh the map and sidebar
+      updateGameUI();
     }
   });
 
@@ -175,6 +175,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
