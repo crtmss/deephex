@@ -4,7 +4,7 @@ import { getState, setState } from './game-state.js';
 import { updateGameUI, showPathCost, drawMap } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
-import { pushStateToSupabase } from '../lib/supabase.js';
+import { pushUnitsUpdate, pushTurnUpdate } from '../lib/supabase.js'; // 🔥 use optimized
 
 function performAction(unitId, targetX, targetY) {
   const state = getState();
@@ -12,7 +12,7 @@ function performAction(unitId, targetX, targetY) {
   if (!unit || state.currentTurn !== state.playerId || unit.ap < 1) return;
 
   const dx = targetX - unit.x;
-  const dy = targetY - targetY;
+  const dy = targetY - unit.y; // 🔥 fix typo: was "dy = targetY - targetY"
   const distance = Math.sqrt(dx * dx + dy * dy);
 
   if (distance <= 3 && !isTileBlocked(targetX, targetY)) {
@@ -25,7 +25,7 @@ function performAction(unitId, targetX, targetY) {
       }
     }
     setState(state);
-    pushStateToSupabase();
+    pushUnitsUpdate(); // ✅ push only units (not full state)
     updateGameUI();
   }
 }
@@ -40,7 +40,7 @@ function endTurn() {
     }
   });
   setState(state);
-  pushStateToSupabase();
+  pushTurnUpdate(); // ✅ push only turn
   updateGameUI();
 }
 
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (unit.mp >= cost) {
         unit.mp -= cost;
         animateMovement(unit, path, () => {
-          pushStateToSupabase();
+          pushUnitsUpdate(); // ✅ push after move
           updateGameUI();
         });
       }
@@ -128,6 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export { performAction, endTurn };
+
 
 
 
