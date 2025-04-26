@@ -1,8 +1,9 @@
-// game/lobby.js
+// File: game/lobby.js
 
 import { supabase } from '../lib/supabase.js';
 import { setState, getState } from './game-state.js';
 import { generateMap } from './map.js';
+import { updateGameUI } from './ui.js';
 
 let roomId = null;
 let playerId = null;
@@ -21,18 +22,14 @@ async function createLobby() {
 
   const { data, error } = await supabase
     .from('lobbies')
-    .insert([
-      {
-        room_code,
-        player_1: true,
-        player_2: false,
-        state: {
-          map: initialMap,
-          turn: 'player1',
-          units: initialUnits
-        }
-      }
-    ])
+    .insert([{
+      room_code,
+      player_1: true,
+      player_2: false,
+      map: initialMap,
+      units: initialUnits,
+      turn: 'player1'
+    }])
     .select('id, room_code');
 
   if (error) {
@@ -48,8 +45,8 @@ async function createLobby() {
     playerId,
     roomId,
     map: initialMap,
-    currentTurn: 'player1',
     units: initialUnits,
+    currentTurn: 'player1',
     player2Seen: false
   });
 
@@ -82,7 +79,12 @@ async function joinLobby(room_code) {
   roomId = data.id;
   playerId = 'player2';
 
-  const state = data.state;
+  const state = {
+    map: data.map,
+    units: data.units,
+    turn: data.turn
+  };
+
   const newUnit = {
     id: 'p2unit',
     owner: 'player2',
@@ -97,15 +99,15 @@ async function joinLobby(room_code) {
 
   await supabase
     .from('lobbies')
-    .update({ state })
+    .update({ units: state.units })
     .eq('id', data.id);
 
   setState({
     playerId,
     roomId: data.id,
     map: state.map,
-    currentTurn: state.turn,
     units: state.units,
+    currentTurn: state.turn,
     player2Seen: true
   });
 
@@ -115,37 +117,44 @@ async function joinLobby(room_code) {
 }
 
 function listenToLobby(roomId) {
-  supabase
-    .channel(`lobby-${roomId}`)
-    .on('postgres_changes', {
-      event: 'UPDATE',
-      schema: 'public',
-      table: 'lobbies',
-      filter: `id=eq.${roomId}`
-    }, (payload) => {
-      const newState = payload.new.state;
-      const current = getState();
+  const channel = supabase.channel(`lobby-${roomId}`);
 
-      const hasTurnChanged = current.currentTurn !== newState.turn;
-      const hasUnitsChanged = JSON.stringify(current.units) !== JSON.stringify(newState.units);
-      const hasMapChanged = JSON.stringify(current.map) !== JSON.stringify(newState.map);
+  channel.on('postgres_changes', {
+    event: 'UPDATE',
+    schema: 'public',
+    table: 'lobbies',
+    filter: `id=eq.${roomId}`
+  }, (payload) => {
+    const { map, units, turn } = payload.new;
+    const current = getState();
 
-      const player2Joined = payload.new.player_2 && !current.player2Seen;
+    const mapChanged = JSON.stringify(current.map) !== JSON.stringify(map);
+    const unitsChanged = JSON.stringify(current.units) !== JSON.stringify(units);
+    const turnChanged = current.currentTurn !== turn;
 
-      if (player2Joined || hasTurnChanged || hasUnitsChanged || hasMapChanged) {
-        console.log('[Realtime Update] State changed, updating local state.');
-        setState({
-          ...current,
-          map: newState.map,
-          currentTurn: newState.turn,
-          units: newState.units,
-          player2Seen: true
-        });
-      } else {
-        console.log('[Realtime Update] No meaningful changes detected.');
-      }
-    })
-    .subscribe();
+    const criticalDesync = !map || !units || units.length === 0;
+
+    if (criticalDesync) {
+      console.warn('[Realtime] Critical desync detected. Reloading page.');
+      window.location.reload();
+      return;
+    }
+
+    if (mapChanged || unitsChanged || turnChanged) {
+      console.log('[Realtime] Detected important state change. Updating locally...');
+      setState({
+        ...current,
+        map,
+        units,
+        currentTurn: turn
+      });
+      updateGameUI(); // ✅ Re-render map, units, sidebar etc
+    } else {
+      console.log('[Realtime] No major change detected.');
+    }
+  });
+
+  channel.subscribe();
 }
 
 function initLobby() {
@@ -159,8 +168,6 @@ function initLobby() {
       const code = codeInput.value.trim();
       if (code) joinLobby(code);
     });
-  } else {
-    console.warn('Lobby UI elements not found.');
   }
 }
 
@@ -171,6 +178,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
