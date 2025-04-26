@@ -8,13 +8,10 @@
 </head>
 <body>
 
-  <!-- Room code shown above canvas -->
   <div id="room-code-display" class="above-canvas"></div>
 
-  <!-- Main canvas -->
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
-  <!-- Sidebar for controls -->
   <div class="sidebar">
     <div id="turn-display">Waiting...</div>
     <div>HP: <span id="unit-hp">-</span></div>
@@ -25,10 +22,7 @@
     <button id="selectUnitBtn">Select Unit</button>
   </div>
 
-  <!-- Supabase -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- Game logic -->
   <script type="module">
     import { supabase } from './lib/supabase.js';
     import { setState, getState } from './game/game-state.js';
@@ -55,20 +49,25 @@
         .eq('room_code', room_code)
         .single();
 
-      if (error) {
+      if (error || !data) {
         alert('Could not load lobby.');
         console.error(error);
         return;
       }
 
-      const state = data.state;
+      const state = {
+        map: data.map,
+        units: data.units,
+        turn: data.turn
+      };
 
       setState({
         playerId,
         roomId: data.id,
         map: state.map,
         units: state.units,
-        currentTurn: state.turn
+        currentTurn: state.turn,
+        player2Seen: data.player_2
       });
 
       drawMap();
@@ -92,7 +91,6 @@
       document.getElementById('selectUnitBtn')?.addEventListener('click', () => {
         const s = getState();
         if (s.currentTurn !== s.playerId) return;
-
         const unit = s.units.find(u => u.owner === s.playerId);
         if (unit) {
           s.selectedUnitId = unit.id;
