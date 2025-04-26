@@ -1,7 +1,8 @@
 // File: game/draw.js
 
-const SQRT3 = Math.sqrt(3);
 import { getState } from './game-state.js';
+
+const SQRT3 = Math.sqrt(3);
 
 export function drawTerrain(ctx, col, row, terrain, size) {
   const { x, y } = hexToPixel(col, row, size);
@@ -30,7 +31,6 @@ export function drawUnit(ctx, unit, size) {
   ctx.strokeStyle = "#000";
   ctx.stroke();
 
-  // ✅ Draw selection if this is selected unit
   const selectedUnitId = getState().selectedUnitId;
   if (unit.id === selectedUnitId) {
     ctx.beginPath();
@@ -54,7 +54,7 @@ function terrainColor(type) {
 function hexToPixel(col, row, size) {
   const canvas = document.getElementById('gameCanvas');
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1); // ✅ FIXED: match ui.js hex move
+  const y = size * 1.5 * (row + 1); // ✅ +1 so map moves visually down
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
@@ -71,9 +71,5 @@ function getHexCorners(cx, cy, size) {
   }
   return corners;
 }
-
-
-
-
 
 
