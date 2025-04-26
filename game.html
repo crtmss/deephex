@@ -8,9 +8,13 @@
 </head>
 <body>
 
+  <!-- Room code shown above canvas -->
   <div id="room-code-display" class="above-canvas"></div>
+
+  <!-- Main canvas -->
   <canvas id="gameCanvas" width="800" height="600"></canvas>
 
+  <!-- Sidebar for controls -->
   <div class="sidebar">
     <div id="turn-display">Waiting...</div>
     <div>HP: <span id="unit-hp">-</span></div>
@@ -21,8 +25,12 @@
     <button id="selectUnitBtn">Select Unit</button>
   </div>
 
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Game logic -->
   <script type="module">
-    import { supabase, subscribeToLobby } from './lib/supabase.js';
+    import { supabase } from './lib/supabase.js';
     import { setState, getState } from './game/game-state.js';
     import { drawMap, updateTurnDisplay, updateGameUI } from './game/ui.js';
     import { endTurn, performAction } from './game/units.js';
@@ -66,8 +74,6 @@
       drawMap();
       updateTurnDisplay(state.turn);
 
-      subscribeToLobby(data.id); // ✅ Now listen for real-time lobby sync
-
       document.getElementById('endTurnBtn')?.addEventListener('click', () => {
         const s = getState();
         if (s.currentTurn === s.playerId) {
@@ -99,5 +105,4 @@
 
 </body>
 </html>
-
 
