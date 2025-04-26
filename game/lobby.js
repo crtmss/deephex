@@ -1,3 +1,5 @@
+// game/lobby.js
+
 import { supabase } from '../lib/supabase.js';
 import { setState, getState } from './game-state.js';
 import { generateMap } from './map.js';
@@ -84,8 +86,11 @@ async function joinLobby(room_code) {
   const newUnit = {
     id: 'p2unit',
     owner: 'player2',
-    x: 22, y: 22,
-    hp: 5, mp: 8, ap: 1
+    x: 22,
+    y: 22,
+    hp: 5,
+    mp: 8,
+    ap: 1
   };
 
   state.units.push(newUnit);
@@ -100,7 +105,8 @@ async function joinLobby(room_code) {
     roomId: data.id,
     map: state.map,
     currentTurn: state.turn,
-    units: state.units
+    units: state.units,
+    player2Seen: true
   });
 
   listenToLobby(data.id);
@@ -111,38 +117,34 @@ async function joinLobby(room_code) {
 function listenToLobby(roomId) {
   supabase
     .channel(`lobby-${roomId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'lobbies',
-        filter: `id=eq.${roomId}`
-      },
-      (payload) => {
-        const newState = payload.new.state;
-        const current = getState();
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'lobbies',
+      filter: `id=eq.${roomId}`
+    }, (payload) => {
+      const newState = payload.new.state;
+      const current = getState();
 
-        const hasChanged =
-          JSON.stringify(current.map) !== JSON.stringify(newState.map) ||
-          JSON.stringify(current.units) !== JSON.stringify(newState.units) ||
-          current.currentTurn !== newState.turn;
+      const hasTurnChanged = current.currentTurn !== newState.turn;
+      const hasUnitsChanged = JSON.stringify(current.units) !== JSON.stringify(newState.units);
+      const hasMapChanged = JSON.stringify(current.map) !== JSON.stringify(newState.map);
 
-        const player2Joined = payload.new.player_2 && !current.player2Seen;
+      const player2Joined = payload.new.player_2 && !current.player2Seen;
 
-        if (player2Joined || hasChanged) {
-          setState({
-            ...current,
-            map: newState.map,
-            currentTurn: newState.turn,
-            units: newState.units,
-            player2Seen: true
-          });
-        } else {
-          console.log('[Info] State update skipped (no changes).');
-        }
+      if (player2Joined || hasTurnChanged || hasUnitsChanged || hasMapChanged) {
+        console.log('[Realtime Update] State changed, updating local state.');
+        setState({
+          ...current,
+          map: newState.map,
+          currentTurn: newState.turn,
+          units: newState.units,
+          player2Seen: true
+        });
+      } else {
+        console.log('[Realtime Update] No meaningful changes detected.');
       }
-    )
+    })
     .subscribe();
 }
 
@@ -169,6 +171,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
