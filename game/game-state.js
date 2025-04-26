@@ -10,7 +10,7 @@ let state = {
   roomId: null,
   hasRendered: false,
   player2Seen: false,
-  selectedUnitId: null
+  selectedUnitId: null // ✅ Keep track of selected unit
 };
 
 export function setState(newState) {
