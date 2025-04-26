@@ -1,3 +1,5 @@
+// game/lobby.js
+
 import { supabase } from '../lib/supabase.js';
 import { setState, getState } from './game-state.js';
 import { generateMap } from './map.js';
@@ -19,14 +21,18 @@ async function createLobby() {
 
   const { data, error } = await supabase
     .from('lobbies')
-    .insert([{
-      room_code,
-      player_1: true,
-      player_2: false,
-      map: initialMap,
-      units: initialUnits,
-      turn: 'player1'
-    }])
+    .insert([
+      {
+        room_code,
+        player_1: true,
+        player_2: false,
+        state: {
+          map: initialMap,
+          turn: 'player1',
+          units: initialUnits
+        }
+      }
+    ])
     .select('id, room_code');
 
   if (error) {
@@ -42,8 +48,8 @@ async function createLobby() {
     playerId,
     roomId,
     map: initialMap,
-    units: initialUnits,
     currentTurn: 'player1',
+    units: initialUnits,
     player2Seen: false
   });
 
@@ -76,12 +82,7 @@ async function joinLobby(room_code) {
   roomId = data.id;
   playerId = 'player2';
 
-  const state = {
-    map: data.map,
-    units: data.units,
-    turn: data.turn
-  };
-
+  const state = data.state;
   const newUnit = {
     id: 'p2unit',
     owner: 'player2',
@@ -96,15 +97,15 @@ async function joinLobby(room_code) {
 
   await supabase
     .from('lobbies')
-    .update({ units: state.units })
+    .update({ state })
     .eq('id', data.id);
 
   setState({
     playerId,
     roomId: data.id,
     map: state.map,
-    units: state.units,
     currentTurn: state.turn,
+    units: state.units,
     player2Seen: true
   });
 
@@ -114,26 +115,37 @@ async function joinLobby(room_code) {
 }
 
 function listenToLobby(roomId) {
-  const channel = supabase.channel(`lobby-${roomId}`);
+  supabase
+    .channel(`lobby-${roomId}`)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'lobbies',
+      filter: `id=eq.${roomId}`
+    }, (payload) => {
+      const newState = payload.new.state;
+      const current = getState();
 
-  channel.on('postgres_changes', {
-    event: 'UPDATE',
-    schema: 'public',
-    table: 'lobbies',
-    filter: `id=eq.${roomId}`
-  }, (payload) => {
-    const current = getState();
-    if (payload.new.units && JSON.stringify(current.units) !== JSON.stringify(payload.new.units)) {
-      console.log('[Realtime] Units updated.');
-      window.location.reload(); // ✅ Reload on units change
-    }
-    if (payload.new.turn && current.currentTurn !== payload.new.turn) {
-      console.log('[Realtime] Turn changed.');
-      window.location.reload(); // ✅ Reload on turn change
-    }
-  });
+      const hasTurnChanged = current.currentTurn !== newState.turn;
+      const hasUnitsChanged = JSON.stringify(current.units) !== JSON.stringify(newState.units);
+      const hasMapChanged = JSON.stringify(current.map) !== JSON.stringify(newState.map);
 
-  channel.subscribe();
+      const player2Joined = payload.new.player_2 && !current.player2Seen;
+
+      if (player2Joined || hasTurnChanged || hasUnitsChanged || hasMapChanged) {
+        console.log('[Realtime Update] State changed, updating local state.');
+        setState({
+          ...current,
+          map: newState.map,
+          currentTurn: newState.turn,
+          units: newState.units,
+          player2Seen: true
+        });
+      } else {
+        console.log('[Realtime Update] No meaningful changes detected.');
+      }
+    })
+    .subscribe();
 }
 
 function initLobby() {
@@ -147,6 +159,8 @@ function initLobby() {
       const code = codeInput.value.trim();
       if (code) joinLobby(code);
     });
+  } else {
+    console.warn('Lobby UI elements not found.');
   }
 }
 
