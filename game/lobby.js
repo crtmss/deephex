@@ -1,4 +1,4 @@
-// File: game/lobby.js
+// game/lobby.js
 
 import { supabase } from '../lib/supabase.js';
 import { setState, getState } from './game-state.js';
@@ -21,18 +21,14 @@ async function createLobby() {
 
   const { data, error } = await supabase
     .from('lobbies')
-    .insert([
-      {
-        room_code,
-        player_1: true,
-        player_2: false,
-        state: {
-          map: initialMap,
-          turn: 'player1',
-          units: initialUnits
-        }
-      }
-    ])
+    .insert([{
+      room_code,
+      player_1: true,
+      player_2: false,
+      map: initialMap,
+      units: initialUnits,
+      turn: 'player1'
+    }])
     .select('id, room_code');
 
   if (error) {
@@ -48,10 +44,9 @@ async function createLobby() {
     playerId,
     roomId,
     map: initialMap,
-    currentTurn: 'player1',
     units: initialUnits,
-    player2Seen: false,
-    selectedUnitId: null // ✅ Make sure to initialize
+    currentTurn: 'player1',
+    player2Seen: false
   });
 
   listenToLobby(roomId);
@@ -83,7 +78,12 @@ async function joinLobby(room_code) {
   roomId = data.id;
   playerId = 'player2';
 
-  const state = data.state;
+  const state = {
+    map: data.map,
+    units: data.units,
+    turn: data.turn
+  };
+
   const newUnit = {
     id: 'p2unit',
     owner: 'player2',
@@ -98,17 +98,16 @@ async function joinLobby(room_code) {
 
   await supabase
     .from('lobbies')
-    .update({ state })
+    .update({ units: state.units })
     .eq('id', data.id);
 
   setState({
     playerId,
     roomId: data.id,
     map: state.map,
-    currentTurn: state.turn,
     units: state.units,
-    player2Seen: true,
-    selectedUnitId: null // ✅ Also here
+    currentTurn: state.turn,
+    player2Seen: true
   });
 
   listenToLobby(data.id);
@@ -117,38 +116,27 @@ async function joinLobby(room_code) {
 }
 
 function listenToLobby(roomId) {
-  supabase
-    .channel(`lobby-${roomId}`)
-    .on('postgres_changes', {
-      event: 'UPDATE',
-      schema: 'public',
-      table: 'lobbies',
-      filter: `id=eq.${roomId}`
-    }, (payload) => {
-      const newState = payload.new.state;
-      const current = getState();
+  const channel = supabase.channel(`lobby-${roomId}`);
 
-      const hasTurnChanged = current.currentTurn !== newState.turn;
-      const hasUnitsChanged = JSON.stringify(current.units) !== JSON.stringify(newState.units);
-      const hasMapChanged = JSON.stringify(current.map) !== JSON.stringify(newState.map);
+  // Listen for UNITS changes
+  channel.on('postgres_changes', {
+    event: 'UPDATE',
+    schema: 'public',
+    table: 'lobbies',
+    filter: `id=eq.${roomId}`
+  }, (payload) => {
+    const current = getState();
+    if (payload.new.units && JSON.stringify(current.units) !== JSON.stringify(payload.new.units)) {
+      console.log('[Realtime] Units updated.');
+      setState({ ...current, units: payload.new.units });
+    }
+    if (payload.new.turn && current.currentTurn !== payload.new.turn) {
+      console.log('[Realtime] Turn changed.');
+      setState({ ...current, currentTurn: payload.new.turn });
+    }
+  });
 
-      const player2Joined = payload.new.player_2 && !current.player2Seen;
-
-      if (player2Joined || hasTurnChanged || hasUnitsChanged || hasMapChanged) {
-        console.log('[Realtime Update] State changed, updating local state.');
-        setState({
-          ...current,
-          map: newState.map,
-          currentTurn: newState.turn,
-          units: newState.units,
-          player2Seen: true
-          // selectedUnitId stays untouched, local only!
-        });
-      } else {
-        console.log('[Realtime Update] No meaningful changes detected.');
-      }
-    })
-    .subscribe();
+  channel.subscribe();
 }
 
 function initLobby() {
@@ -162,8 +150,6 @@ function initLobby() {
       const code = codeInput.value.trim();
       if (code) joinLobby(code);
     });
-  } else {
-    console.warn('Lobby UI elements not found.');
   }
 }
 
