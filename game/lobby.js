@@ -3,7 +3,7 @@
 import { supabase } from '../lib/supabase.js';
 import { setState, getState } from './game-state.js';
 import { generateMap } from './map.js';
-import { updateGameUI } from './ui.js';
+import { pushStateToSupabase } from '../lib/supabase.js'; // ✅ Add push after unit creation
 
 let roomId = null;
 let playerId = null;
@@ -47,11 +47,11 @@ async function createLobby() {
     map: initialMap,
     units: initialUnits,
     currentTurn: 'player1',
-    player2Seen: false,
-    selectedUnitId: null
+    player2Seen: false
   });
 
   listenToLobby(roomId);
+
   console.log(`Lobby created with code: ${room_code}`);
   const codeDisplay = document.getElementById('lobby-code');
   if (codeDisplay) codeDisplay.textContent = `Room Code: ${room_code}`;
@@ -96,6 +96,7 @@ async function joinLobby(room_code) {
     ap: 1
   };
 
+  // ✅ Push P2 unit to DB
   state.units.push(newUnit);
 
   await supabase
@@ -109,11 +110,14 @@ async function joinLobby(room_code) {
     map: state.map,
     units: state.units,
     currentTurn: state.turn,
-    player2Seen: true,
-    selectedUnitId: null
+    player2Seen: true
   });
 
+  // ✅ Push full state after join so P1 will get unit update
+  pushStateToSupabase(); 
+
   listenToLobby(data.id);
+
   console.log(`Joined lobby with code: ${room_code}`);
   window.location.href = `game.html?room=${room_code}&player=2`;
 }
@@ -128,25 +132,19 @@ function listenToLobby(roomId) {
     filter: `id=eq.${roomId}`
   }, (payload) => {
     const current = getState();
-    const newUnits = payload.new.units;
-    const newTurn = payload.new.turn;
 
-    let updated = false;
+    const hasUnitsChanged = JSON.stringify(current.units) !== JSON.stringify(payload.new.units);
+    const hasTurnChanged = current.currentTurn !== payload.new.turn;
 
-    if (newUnits && JSON.stringify(current.units) !== JSON.stringify(newUnits)) {
-      console.log('[Realtime] Units updated.');
-      setState({ ...current, units: newUnits });
-      updated = true;
-    }
-
-    if (newTurn && current.currentTurn !== newTurn) {
-      console.log('[Realtime] Turn changed.');
-      setState({ ...getState(), currentTurn: newTurn });
-      updated = true;
-    }
-
-    if (updated) {
-      updateGameUI();
+    if (hasUnitsChanged || hasTurnChanged) {
+      console.log('[Realtime] Lobby state updated.');
+      setState({
+        ...current,
+        units: payload.new.units,
+        currentTurn: payload.new.turn
+      });
+    } else {
+      console.log('[Realtime] No meaningful lobby changes.');
     }
   });
 
@@ -174,6 +172,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
