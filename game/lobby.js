@@ -1,9 +1,6 @@
-// File: game/lobby.js
-
 import { supabase } from '../lib/supabase.js';
 import { setState, getState } from './game-state.js';
 import { generateMap } from './map.js';
-import { pushStateToSupabase } from '../lib/supabase.js'; // ✅ Add push after unit creation
 
 let roomId = null;
 let playerId = null;
@@ -51,7 +48,6 @@ async function createLobby() {
   });
 
   listenToLobby(roomId);
-
   console.log(`Lobby created with code: ${room_code}`);
   const codeDisplay = document.getElementById('lobby-code');
   if (codeDisplay) codeDisplay.textContent = `Room Code: ${room_code}`;
@@ -96,7 +92,6 @@ async function joinLobby(room_code) {
     ap: 1
   };
 
-  // ✅ Push P2 unit to DB
   state.units.push(newUnit);
 
   await supabase
@@ -113,11 +108,7 @@ async function joinLobby(room_code) {
     player2Seen: true
   });
 
-  // ✅ Push full state after join so P1 will get unit update
-  pushStateToSupabase(); 
-
   listenToLobby(data.id);
-
   console.log(`Joined lobby with code: ${room_code}`);
   window.location.href = `game.html?room=${room_code}&player=2`;
 }
@@ -132,19 +123,13 @@ function listenToLobby(roomId) {
     filter: `id=eq.${roomId}`
   }, (payload) => {
     const current = getState();
-
-    const hasUnitsChanged = JSON.stringify(current.units) !== JSON.stringify(payload.new.units);
-    const hasTurnChanged = current.currentTurn !== payload.new.turn;
-
-    if (hasUnitsChanged || hasTurnChanged) {
-      console.log('[Realtime] Lobby state updated.');
-      setState({
-        ...current,
-        units: payload.new.units,
-        currentTurn: payload.new.turn
-      });
-    } else {
-      console.log('[Realtime] No meaningful lobby changes.');
+    if (payload.new.units && JSON.stringify(current.units) !== JSON.stringify(payload.new.units)) {
+      console.log('[Realtime] Units updated.');
+      window.location.reload(); // ✅ Reload on units change
+    }
+    if (payload.new.turn && current.currentTurn !== payload.new.turn) {
+      console.log('[Realtime] Turn changed.');
+      window.location.reload(); // ✅ Reload on turn change
     }
   });
 
@@ -172,17 +157,6 @@ export {
   roomId,
   playerId
 };
-
-
-
-
-
-
-
-
-
-
-
 
 
 
