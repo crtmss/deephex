@@ -1,4 +1,4 @@
-// game/lobby.js
+// File: game/lobby.js
 
 import { supabase } from '../lib/supabase.js';
 import { setState, getState } from './game-state.js';
@@ -50,7 +50,8 @@ async function createLobby() {
     map: initialMap,
     currentTurn: 'player1',
     units: initialUnits,
-    player2Seen: false
+    player2Seen: false,
+    selectedUnitId: null // ✅ Make sure to initialize
   });
 
   listenToLobby(roomId);
@@ -106,7 +107,8 @@ async function joinLobby(room_code) {
     map: state.map,
     currentTurn: state.turn,
     units: state.units,
-    player2Seen: true
+    player2Seen: true,
+    selectedUnitId: null // ✅ Also here
   });
 
   listenToLobby(data.id);
@@ -140,6 +142,7 @@ function listenToLobby(roomId) {
           currentTurn: newState.turn,
           units: newState.units,
           player2Seen: true
+          // selectedUnitId stays untouched, local only!
         });
       } else {
         console.log('[Realtime Update] No meaningful changes detected.');
@@ -171,6 +174,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
