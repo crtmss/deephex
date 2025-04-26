@@ -76,11 +76,9 @@ function hexToPixel(col, row, size) {
   if (!canvas) return { x: 0, y: 0 };
 
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1); // ✅ Shift 1 hex downward
-
+  const y = size * 1.5 * (row + 1);
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
 
   return { x: x + offsetX, y: y + offsetY };
 }
-
