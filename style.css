@@ -12,84 +12,52 @@ body {
   flex-direction: column;
 }
 
-/* Main Menu */
-.menu-container {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  box-shadow: 0 0 30px rgba(0, 255, 255, 0.1);
-  border-radius: 20px;
-  padding: 40px;
-  backdrop-filter: blur(12px);
-  width: 90%;
-  max-width: 400px;
+/* Room Code above canvas */
+.above-canvas {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #00ffff;
+  margin-top: 10px;
+  margin-bottom: 10px;
   text-align: center;
 }
 
-/* Title */
-.title {
-  font-size: 2.5em;
-  font-weight: bold;
-  letter-spacing: 2px;
-  color: #00ffff;
-  text-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
-  margin-bottom: 20px;
-}
-
-/* Buttons */
-button {
-  padding: 12px 20px;
-  font-size: 1em;
-  font-weight: bold;
-  background: linear-gradient(to right, #0072ff, #00c6ff);
-  border: none;
-  border-radius: 10px;
-  color: white;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  width: 100%;
-  max-width: 200px;
-}
-
-button:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 12px rgba(0, 198, 255, 0.6);
-}
-
-/* Canvas */
-canvas#gameCanvas {
+/* Game Canvas */
+#gameCanvas {
   display: block;
   margin: 0 auto;
   margin-top: 20px;
 }
 
-/* Room code display */
-.above-canvas {
+/* Buttons */
+button {
+  padding: 12px 20px;
+  font-size: 1rem;
   font-weight: bold;
-  font-size: 1.2rem;
-  color: #00ffff;
-  text-align: center;
-  margin-bottom: 10px;
+  background: linear-gradient(to right, #0072ff, #00c6ff);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  max-width: 200px;
+  margin-top: 8px;
+}
+
+button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,198,255,0.4);
 }
 
 /* Sidebar */
 .sidebar {
-  position: absolute;
-  right: 20px;
-  top: 20px;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 15px;
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  max-width: 150px;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-/* Waiting message */
-#waiting-msg {
-  color: #ffcc00;
-  font-size: 1.1rem;
+.hidden {
+  display: none;
 }
-
-
-
-
-
