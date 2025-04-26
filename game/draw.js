@@ -17,19 +17,15 @@ export function drawTerrain(ctx, col, row, terrain, size, highlight = false) {
   ctx.fillStyle = terrainColor(terrain);
   ctx.fill();
 
-  if (highlight) {
-    ctx.strokeStyle = '#ffff00'; // Yellow border if highlighted
-    ctx.lineWidth = 3;
-  } else {
-    ctx.strokeStyle = '#444';
-    ctx.lineWidth = 1;
-  }
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.strokeStyle = highlight ? 'rgba(255, 255, 0, 0.8)' : '#444';
+  ctx.lineWidth = highlight ? 3 : 1;
   ctx.stroke();
 }
 
 export function drawUnit(ctx, unit, size) {
   const { x, y } = hexToPixel(unit.x, unit.y, size);
-
   ctx.beginPath();
   ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
   ctx.fillStyle = unit.owner === 'player1' ? "red" : "blue";
@@ -37,11 +33,11 @@ export function drawUnit(ctx, unit, size) {
   ctx.strokeStyle = "#000";
   ctx.stroke();
 
-  // ✅ Highlight selected unit
   const selectedUnitId = getState().selectedUnitId;
   if (unit.id === selectedUnitId) {
+    const pulse = 1 + Math.sin(Date.now() / 300) * 0.3;
     ctx.beginPath();
-    ctx.arc(x, y, size / 6, 0, 2 * Math.PI);
+    ctx.arc(x, y, (size / 6) * pulse, 0, 2 * Math.PI);
     ctx.fillStyle = 'white';
     ctx.fill();
   }
@@ -60,13 +56,10 @@ function terrainColor(type) {
 
 function hexToPixel(col, row, size) {
   const canvas = document.getElementById('gameCanvas');
-  if (!canvas) return { x: 0, y: 0 };
-
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1); // ✅ push 1 row down
+  const y = size * 1.5 * (row + 1); // ✅ slight vertical offset
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
-
   return { x: x + offsetX, y: y + offsetY };
 }
 
@@ -81,6 +74,7 @@ function getHexCorners(cx, cy, size) {
   }
   return corners;
 }
+
 
 
 
