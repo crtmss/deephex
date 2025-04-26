@@ -6,12 +6,13 @@ body {
   background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
   color: #ffffff;
   display: flex;
-  flex-direction: column; /* ✅ For stacking room code + canvas */
+  justify-content: center;
   align-items: center;
   height: 100vh;
+  flex-direction: column;
 }
 
-/* Main Menu Container */
+/* Main Menu */
 .menu-container {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -19,9 +20,8 @@ body {
   border-radius: 20px;
   padding: 40px;
   backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  max-width: 400px;
   width: 90%;
+  max-width: 400px;
   text-align: center;
 }
 
@@ -30,20 +30,9 @@ body {
   font-size: 2.5em;
   font-weight: bold;
   letter-spacing: 2px;
-  margin-bottom: 25px;
   color: #00ffff;
   text-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
-}
-
-/* Menu List */
-.menu {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.menu li {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 /* Buttons */
@@ -51,11 +40,10 @@ button {
   padding: 12px 20px;
   font-size: 1em;
   font-weight: bold;
-  background: #00c6ff;
   background: linear-gradient(to right, #0072ff, #00c6ff);
-  color: white;
   border: none;
   border-radius: 10px;
+  color: white;
   cursor: pointer;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
   width: 100%;
@@ -67,167 +55,38 @@ button:hover {
   box-shadow: 0 0 12px rgba(0, 198, 255, 0.6);
 }
 
-/* Input */
-input#room-code {
-  padding: 10px;
-  border-radius: 8px;
-  border: none;
-  font-size: 1em;
-  width: 100%;
-  max-width: 160px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-  text-align: center;
-}
-
-/* Disabled list item */
-.disabled {
-  color: #888;
-  text-decoration: line-through;
-}
-
-/* Footer connection status + room code */
-#lobby-footer {
-  position: fixed;
-  bottom: 20px;
-  width: 100%;
-  text-align: center;
-  font-size: 1rem;
-  color: #0ff;
-}
-
-#status {
-  margin-top: 5px;
-  font-weight: bold;
-}
-
-.status-connected {
-  color: #00ff88;
-}
-
-.status-disconnected {
-  color: #ff4444;
-}
-
-#lobby-code {
-  font-size: 1.1rem;
-  font-weight: bold;
-  color: #0ff;
-}
-
-/* Modal Styles */
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  backdrop-filter: blur(8px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 999;
-}
-
-.modal.hidden {
-  display: none;
-}
-
-.modal-content {
-  background: rgba(0, 0, 0, 0.7);
-  padding: 30px;
-  border-radius: 12px;
-  width: 300px;
-  color: white;
-  box-shadow: 0 0 20px rgba(0, 198, 255, 0.3);
-}
-
-.modal-content h2 {
-  margin-top: 0;
-  color: #00c6ff;
-}
-
-.modal-content label {
-  display: block;
-  margin: 12px 0;
-}
-
-.modal-content input,
-.modal-content select {
-  width: 100%;
-  margin-top: 5px;
-  padding: 6px;
-  border-radius: 6px;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
-}
-
-/* Game Canvas */
+/* Canvas */
 canvas#gameCanvas {
   display: block;
   margin: 0 auto;
-  margin-top: 28px; /* ✅ Visually push hex grid down 1 hex */
+  margin-top: 20px;
 }
 
-/* Room code display above canvas */
+/* Room code display */
 .above-canvas {
-  text-align: center;
   font-weight: bold;
-  color: #00ffff;
   font-size: 1.2rem;
-  margin-top: 20px;
+  color: #00ffff;
+  text-align: center;
   margin-bottom: 10px;
 }
 
 /* Sidebar */
 .sidebar {
-  position: fixed;
+  position: absolute;
   right: 20px;
-  top: 100px;
-  background-color: rgba(0, 0, 0, 0.6);
-  padding: 20px;
-  border-radius: 10px;
-  border: 1px solid #00c6ff;
-  box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+  top: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 15px;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+  max-width: 150px;
 }
 
-.sidebar button {
-  margin-top: 8px;
-  width: 100%;
-  font-size: 1em;
-  padding: 10px;
-  background: linear-gradient(to right, #0072ff, #00c6ff);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
-
-.sidebar button:hover {
-  box-shadow: 0 0 12px rgba(0, 198, 255, 0.6);
-}
-
-/* Turn Info */
-#turn-display {
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-}
-
-/* Unit Stats */
-.sidebar div {
-  margin-bottom: 6px;
-}
-
-/* Waiting message for host */
+/* Waiting message */
 #waiting-msg {
-  font-size: 1.1rem;
   color: #ffcc00;
-  margin-top: 10px;
-}
-
-.hidden {
-  display: none;
+  font-size: 1.1rem;
 }
 
 
