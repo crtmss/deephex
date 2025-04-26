@@ -26,11 +26,9 @@ async function createLobby() {
       room_code,
       player_1: true,
       player_2: false,
-      state: {
-        map: initialMap,
-        units: initialUnits,
-        turn: 'player1'
-      }
+      map: initialMap,
+      units: initialUnits,
+      turn: 'player1'
     }])
     .select('id, room_code');
 
@@ -49,7 +47,8 @@ async function createLobby() {
     map: initialMap,
     units: initialUnits,
     currentTurn: 'player1',
-    player2Seen: false
+    player2Seen: false,
+    selectedUnitId: null
   });
 
   listenToLobby(roomId);
@@ -82,9 +81,9 @@ async function joinLobby(room_code) {
   playerId = 'player2';
 
   const state = {
-    map: data.state.map,       // ✅ FIXED (use data.state)
-    units: data.state.units,
-    turn: data.state.turn
+    map: data.map,
+    units: data.units,
+    turn: data.turn
   };
 
   const newUnit = {
@@ -101,7 +100,7 @@ async function joinLobby(room_code) {
 
   await supabase
     .from('lobbies')
-    .update({ state: { map: state.map, units: state.units, turn: state.turn } })
+    .update({ units: state.units })
     .eq('id', data.id);
 
   setState({
@@ -110,7 +109,8 @@ async function joinLobby(room_code) {
     map: state.map,
     units: state.units,
     currentTurn: state.turn,
-    player2Seen: true
+    player2Seen: true,
+    selectedUnitId: null
   });
 
   listenToLobby(data.id);
@@ -128,21 +128,20 @@ function listenToLobby(roomId) {
     filter: `id=eq.${roomId}`
   }, (payload) => {
     const current = getState();
-    const newState = payload.new.state;
+    const newUnits = payload.new.units;
+    const newTurn = payload.new.turn;
 
     let updated = false;
 
-    // 🔵 Units sync
-    if (newState.units && JSON.stringify(current.units) !== JSON.stringify(newState.units)) {
+    if (newUnits && JSON.stringify(current.units) !== JSON.stringify(newUnits)) {
       console.log('[Realtime] Units updated.');
-      setState({ ...current, units: newState.units });
+      setState({ ...current, units: newUnits });
       updated = true;
     }
 
-    // 🟠 Turn sync
-    if (newState.turn && current.currentTurn !== newState.turn) {
+    if (newTurn && current.currentTurn !== newTurn) {
       console.log('[Realtime] Turn changed.');
-      setState({ ...getState(), currentTurn: newState.turn });
+      setState({ ...getState(), currentTurn: newTurn });
       updated = true;
     }
 
