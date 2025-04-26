@@ -29,6 +29,34 @@
     import { drawMap, updateTurnDisplay, updateGameUI } from './game/ui.js';
     import { endTurn, performAction } from './game/units.js';
 
+    async function listenToGameRoomUpdates(roomId) {
+      const channel = supabase.channel(`game-${roomId}`);
+      channel.on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'lobbies',
+        filter: `id=eq.${roomId}`
+      }, (payload) => {
+        const current = getState();
+        const newState = payload.new;
+
+        const unitsChanged = JSON.stringify(current.units) !== JSON.stringify(newState.units);
+        const turnChanged = current.currentTurn !== newState.turn;
+
+        if (unitsChanged || turnChanged) {
+          console.log('[Realtime] Game state updated.');
+          setState({
+            ...current,
+            units: newState.units,
+            currentTurn: newState.turn,
+            map: newState.map // If you want map update too (safe)
+          });
+          updateGameUI();
+        }
+      });
+      channel.subscribe();
+    }
+
     document.addEventListener('DOMContentLoaded', async () => {
       const params = new URLSearchParams(window.location.search);
       const room_code = params.get('room');
@@ -73,6 +101,9 @@
       drawMap();
       updateTurnDisplay(state.turn);
 
+      // ✅ Realtime sync
+      listenToGameRoomUpdates(data.id);
+
       document.getElementById('endTurnBtn')?.addEventListener('click', () => {
         const s = getState();
         if (s.currentTurn === s.playerId) {
@@ -103,4 +134,5 @@
 
 </body>
 </html>
+
 
