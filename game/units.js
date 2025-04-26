@@ -1,5 +1,3 @@
-// File: game/units.js
-
 import { getState, setState } from './game-state.js';
 import { updateGameUI, showPathCost, drawMap } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
@@ -25,7 +23,9 @@ function performAction(unitId, targetX, targetY) {
       }
     }
     setState(state);
-    pushStateToSupabase();
+    pushStateToSupabase().then(() => {
+      window.location.reload(); // ✅ Reload after action
+    });
     updateGameUI();
   }
 }
@@ -40,7 +40,9 @@ function endTurn() {
     }
   });
   setState(state);
-  pushStateToSupabase();
+  pushStateToSupabase().then(() => {
+    window.location.reload(); // ✅ Reload after end turn
+  });
   updateGameUI();
 }
 
@@ -67,15 +69,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
 
     const state = getState();
-    const unit = state.units.find((u) => u.id === state.selectedUnitId);
+    const clickedUnit = state.units.find((u) => u.x === col && u.y === row && u.owner === state.playerId);
 
-    if (unit && state.currentTurn === state.playerId) {
+    if (clickedUnit) {
+      setState({
+        ...state,
+        selectedUnitId: clickedUnit.id
+      });
+      updateGameUI();
+    } else if (state.selectedUnitId) {
+      const unit = state.units.find((u) => u.id === state.selectedUnitId);
       const path = calculatePath(unit.x, unit.y, col, row, state.map);
       const cost = calculateMovementCost(path, state.map);
       if (unit.mp >= cost) {
         unit.mp -= cost;
         animateMovement(unit, path, () => {
-          pushStateToSupabase();
+          pushStateToSupabase().then(() => {
+            window.location.reload(); // ✅ Reload after move
+          });
           updateGameUI();
         });
       }
@@ -89,10 +100,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const state = getState();
     const unit = state.units.find((u) => u.id === state.selectedUnitId);
-    if (!unit || state.currentTurn !== state.playerId) {
-      drawMap(); // Redraw map normally
-      return;
-    }
+    if (!unit || state.currentTurn !== state.playerId) return;
 
     const path = calculatePath(unit.x, unit.y, col, row, state.map);
     if (path) {
@@ -124,7 +132,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export { performAction, endTurn };
-
-
-
-
