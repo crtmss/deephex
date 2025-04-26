@@ -30,7 +30,7 @@ export function drawUnit(ctx, unit, size) {
   ctx.strokeStyle = "#000";
   ctx.stroke();
 
-  // ✅ Draw white dot if the unit is currently selected
+  // ✅ Draw selection if this is selected unit
   const selectedUnitId = getState().selectedUnitId;
   if (unit.id === selectedUnitId) {
     ctx.beginPath();
@@ -54,7 +54,7 @@ function terrainColor(type) {
 function hexToPixel(col, row, size) {
   const canvas = document.getElementById('gameCanvas');
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * row;
+  const y = size * 1.5 * (row + 1); // ✅ FIXED: match ui.js hex move
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
@@ -71,6 +71,7 @@ function getHexCorners(cx, cy, size) {
   }
   return corners;
 }
+
 
 
 
