@@ -1,12 +1,9 @@
+// File: game/units.js
 import { getState, setState } from './game-state.js';
-import {
-  updateGameUI,
-  drawMap,
-  showPathCost,
-  updateTurnDisplay
-} from './ui.js';
+import { updateGameUI, showPathCost, drawMap } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
+import { pushStateToSupabase } from '../lib/supabase.js';
 
 let selectedUnitId = null;
 
@@ -33,14 +30,13 @@ function performAction(unitId, targetX, targetY) {
       }
     }
     setState(state);
+    pushStateToSupabase(); // ✅ PUSH after action
     updateGameUI();
   }
 }
 
 function endTurn() {
   const state = getState();
-  if (state.currentTurn !== state.playerId) return;
-
   state.currentTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
   state.units.forEach((unit) => {
     if (unit.owner === state.currentTurn) {
@@ -49,6 +45,7 @@ function endTurn() {
     }
   });
   setState(state);
+  pushStateToSupabase(); // ✅ PUSH after turn ends
   updateGameUI();
 }
 
@@ -67,6 +64,8 @@ function animateMovement(unit, path, callback) {
 
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return;
+
   canvas.addEventListener('click', (e) => {
     const rect = canvas.getBoundingClientRect();
     const col = Math.floor(((e.clientX - rect.left) / canvas.width) * 25);
@@ -74,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const state = getState();
     const clickedUnit = state.units.find((u) => u.x === col && u.y === row && u.owner === state.playerId);
+
     if (clickedUnit) {
       selectUnit(clickedUnit);
       updateGameUI();
@@ -85,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
         unit.mp -= cost;
         animateMovement(unit, path, () => {
           setState(state);
+          pushStateToSupabase(); // ✅ PUSH after move
           updateGameUI();
         });
       }
@@ -131,7 +132,5 @@ export function getSelectedUnitId() {
 }
 
 export { performAction, endTurn };
-
-
 
 
