@@ -3,7 +3,7 @@
 const SQRT3 = Math.sqrt(3);
 import { getState } from './game-state.js';
 
-export function drawTerrain(ctx, col, row, terrain, size) {
+export function drawTerrain(ctx, col, row, terrain, size, highlight = false) {
   const { x, y } = hexToPixel(col, row, size);
   const corners = getHexCorners(x, y, size);
 
@@ -16,7 +16,14 @@ export function drawTerrain(ctx, col, row, terrain, size) {
 
   ctx.fillStyle = terrainColor(terrain);
   ctx.fill();
-  ctx.strokeStyle = "#444";
+
+  if (highlight) {
+    ctx.strokeStyle = '#ffff00'; // Yellow border if highlighted
+    ctx.lineWidth = 3;
+  } else {
+    ctx.strokeStyle = '#444';
+    ctx.lineWidth = 1;
+  }
   ctx.stroke();
 }
 
