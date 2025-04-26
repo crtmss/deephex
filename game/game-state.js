@@ -1,4 +1,4 @@
-// game/game-state.js
+// File: game/game-state.js
 
 import { drawMap } from './ui.js';
 
@@ -10,7 +10,7 @@ let state = {
   roomId: null,
   hasRendered: false,
   player2Seen: false,
-  selectedUnitId: null // ✅
+  selectedUnitId: null
 };
 
 export function setState(newState) {
@@ -43,4 +43,3 @@ function renderIfMapExists() {
     drawMap();
   }
 }
-
