@@ -1,8 +1,9 @@
-// game/lobby.js
+// File: game/lobby.js
 
 import { supabase } from '../lib/supabase.js';
 import { setState, getState } from './game-state.js';
 import { generateMap } from './map.js';
+import { updateGameUI } from './ui.js';
 
 let roomId = null;
 let playerId = null;
@@ -118,7 +119,7 @@ async function joinLobby(room_code) {
 function listenToLobby(roomId) {
   const channel = supabase.channel(`lobby-${roomId}`);
 
-  // Listen for UNITS changes
+  // ✅ Separated Events for better control:
   channel.on('postgres_changes', {
     event: 'UPDATE',
     schema: 'public',
@@ -126,13 +127,27 @@ function listenToLobby(roomId) {
     filter: `id=eq.${roomId}`
   }, (payload) => {
     const current = getState();
-    if (payload.new.units && JSON.stringify(current.units) !== JSON.stringify(payload.new.units)) {
+    const newUnits = payload.new.units;
+    const newTurn = payload.new.turn;
+
+    let updated = false;
+
+    // 🔵 Update units
+    if (newUnits && JSON.stringify(current.units) !== JSON.stringify(newUnits)) {
       console.log('[Realtime] Units updated.');
-      setState({ ...current, units: payload.new.units });
+      setState({ ...current, units: newUnits });
+      updated = true;
     }
-    if (payload.new.turn && current.currentTurn !== payload.new.turn) {
+
+    // 🟠 Update turn
+    if (newTurn && current.currentTurn !== newTurn) {
       console.log('[Realtime] Turn changed.');
-      setState({ ...current, currentTurn: payload.new.turn });
+      setState({ ...getState(), currentTurn: newTurn });
+      updated = true;
+    }
+
+    if (updated) {
+      updateGameUI(); // ✅ Refresh the map and sidebar
     }
   });
 
@@ -160,6 +175,7 @@ export {
   roomId,
   playerId
 };
+
 
 
 
