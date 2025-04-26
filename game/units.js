@@ -67,23 +67,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
 
     const state = getState();
-    const clickedUnit = state.units.find((u) => u.x === col && u.y === row && u.owner === state.playerId);
+    const unit = state.units.find((u) => u.id === state.selectedUnitId);
 
-    if (clickedUnit) {
-      setState({ ...state, selectedUnitId: clickedUnit.id });
-      updateGameUI();
-    } else if (state.selectedUnitId) {
-      const unit = state.units.find((u) => u.id === state.selectedUnitId);
-      if (unit && state.currentTurn === state.playerId) {
-        const path = calculatePath(unit.x, unit.y, col, row, state.map);
-        const cost = calculateMovementCost(path, state.map);
-        if (unit.mp >= cost && !isTileBlocked(col, row)) {
-          unit.mp -= cost;
-          animateMovement(unit, path, () => {
-            pushStateToSupabase();
-            updateGameUI();
-          });
-        }
+    if (unit && state.currentTurn === state.playerId) {
+      const path = calculatePath(unit.x, unit.y, col, row, state.map);
+      const cost = calculateMovementCost(path, state.map);
+      if (unit.mp >= cost) {
+        unit.mp -= cost;
+        animateMovement(unit, path, () => {
+          pushStateToSupabase();
+          updateGameUI();
+        });
       }
     }
   });
@@ -94,16 +88,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
 
     const state = getState();
-    if (state.selectedUnitId && state.currentTurn === state.playerId) {
-      const unit = state.units.find((u) => u.id === state.selectedUnitId);
-      if (unit) {
-        const path = calculatePath(unit.x, unit.y, col, row, state.map);
-        if (path) {
-          showPathCost(path, calculateMovementCost(path, state.map));
-        } else {
-          drawMap();
-        }
-      }
+    const unit = state.units.find((u) => u.id === state.selectedUnitId);
+    if (!unit || state.currentTurn !== state.playerId) {
+      drawMap(); // Redraw map normally
+      return;
+    }
+
+    const path = calculatePath(unit.x, unit.y, col, row, state.map);
+    if (path) {
+      const cost = calculateMovementCost(path, state.map);
+      showPathCost(path, cost);
     } else {
       drawMap();
     }
@@ -116,7 +110,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (state.currentTurn === state.playerId) {
         const unit = state.units.find((u) => u.owner === state.playerId);
         if (unit) {
-          setState({ ...state, selectedUnitId: unit.id });
+          setState({
+            ...state,
+            selectedUnitId: unit.id
+          });
           updateGameUI();
         }
       } else {
