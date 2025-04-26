@@ -1,4 +1,4 @@
-// game/game-state.js
+// File: game/game-state.js
 
 import { drawMap } from './ui.js';
 
@@ -10,12 +10,18 @@ let state = {
   roomId: null,
   hasRendered: false,
   player2Seen: false,
-  selectedUnitId: null // ✅ NEW
+  selectedUnitId: null // ✅ Keep selected unit local only
 };
 
 export function setState(newState) {
   const wasMapEmpty = state.map.length === 0;
-  state = { ...state, ...newState };
+  
+  // Update everything except selectedUnitId unless explicitly changed
+  state = {
+    ...state,
+    ...newState,
+    selectedUnitId: newState.selectedUnitId !== undefined ? newState.selectedUnitId : state.selectedUnitId
+  };
 
   if (wasMapEmpty && state.map.length > 0 && !state.hasRendered) {
     renderIfMapExists();
@@ -43,10 +49,3 @@ function renderIfMapExists() {
     drawMap();
   }
 }
-
-
-
-
-
-
-
