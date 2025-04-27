@@ -1,9 +1,7 @@
-// File: game/draw.js
-
 const SQRT3 = Math.sqrt(3);
 import { getState } from './game-state.js';
 
-export function drawTerrain(ctx, col, row, terrain, size, highlight = false) {
+export function drawTerrain(ctx, col, row, terrain, size) {
   const { x, y } = hexToPixel(col, row, size);
   const corners = getHexCorners(x, y, size);
 
@@ -14,7 +12,7 @@ export function drawTerrain(ctx, col, row, terrain, size, highlight = false) {
   }
   ctx.closePath();
 
-  ctx.fillStyle = highlight ? 'lightgreen' : terrainColor(terrain);
+  ctx.fillStyle = terrainColor(terrain);
   ctx.fill();
   ctx.strokeStyle = "#444";
   ctx.stroke();
@@ -53,7 +51,7 @@ function terrainColor(type) {
 function hexToPixel(col, row, size) {
   const canvas = document.getElementById('gameCanvas');
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1); // shifted down 1 hex
+  const y = size * 1.5 * (row + 1);
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
