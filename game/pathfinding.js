@@ -1,6 +1,12 @@
 // File: game/pathfinding.js
 
-import { getMovementCost, isTileBlocked } from './terrain.js';
+const terrainCosts = {
+  grassland: 1,
+  sand: 2,
+  mud: 3,
+  mountain: Infinity,
+  water: Infinity
+};
 
 function heuristic(a, b) {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
@@ -15,71 +21,71 @@ function getNeighbors(map, node) {
     { dx: -1, dy: 1 },
     { dx: 0, dy: 1 },
   ];
-
   const neighbors = [];
-  for (const { dx, dy } of directions) {
-    const nx = node.x + dx;
-    const ny = node.y + dy;
-    if (map[ny]?.[nx] && !isTileBlocked(nx, ny, map)) {
-      neighbors.push({ x: nx, y: ny });
+  directions.forEach(({ dx, dy }) => {
+    const x = node.x + dx;
+    const y = node.y + dy;
+    if (map[y] && map[y][x] && terrainCosts[map[y][x].type] !== Infinity) {
+      neighbors.push({ x, y });
     }
-  }
+  });
   return neighbors;
 }
 
-export function calculatePath(startX, startY, goalX, goalY, map) {
-  const start = { x: startX, y: startY };
-  const goal = { x: goalX, y: goalY };
-
-  const openSet = [start];
+export function findPath(map, start, goal) {
+  const openSet = [{ x: start.x, y: start.y }];
   const cameFrom = new Map();
   const gScore = new Map();
-  gScore.set(`${start.x},${start.y}`, 0);
-
+  gScore.set(start.y * 100 + start.x, 0);
   const fScore = new Map();
-  fScore.set(`${start.x},${start.y}`, heuristic(start, goal));
+  fScore.set(start.y * 100 + start.x, heuristic(start, goal));
 
   while (openSet.length > 0) {
-    openSet.sort((a, b) => {
-      return (fScore.get(`${a.x},${a.y}`) || Infinity) - (fScore.get(`${b.x},${b.y}`) || Infinity);
-    });
-
+    openSet.sort((a, b) => fScore.get(a.y * 100 + a.x) - fScore.get(b.y * 100 + b.x));
     const current = openSet.shift();
     if (current.x === goal.x && current.y === goal.y) {
       const path = [];
       let temp = current;
-      while (cameFrom.has(`${temp.x},${temp.y}`)) {
+      while (cameFrom.has(temp.y * 100 + temp.x)) {
         path.push(temp);
-        temp = cameFrom.get(`${temp.x},${temp.y}`);
+        temp = cameFrom.get(temp.y * 100 + temp.x);
       }
       path.push(start);
       return path.reverse();
     }
 
-    const neighbors = getNeighbors(map, current);
-    for (const neighbor of neighbors) {
-      const tentativeG = (gScore.get(`${current.x},${current.y}`) || Infinity) + getMovementCost(map[neighbor.y][neighbor.x].type);
-      const neighborKey = `${neighbor.x},${neighbor.y}`;
+    getNeighbors(map, current).forEach((neighbor) => {
+      const key = neighbor.y * 100 + neighbor.x;
+      const tentativeGScore = gScore.get(current.y * 100 + current.x) + (terrainCosts[map[neighbor.y][neighbor.x].type] ?? 1);
 
-      if (tentativeG < (gScore.get(neighborKey) || Infinity)) {
-        cameFrom.set(neighborKey, current);
-        gScore.set(neighborKey, tentativeG);
-        fScore.set(neighborKey, tentativeG + heuristic(neighbor, goal));
-        if (!openSet.some(n => n.x === neighbor.x && n.y === neighbor.y)) {
+      if (tentativeGScore < (gScore.get(key) || Infinity)) {
+        cameFrom.set(key, current);
+        gScore.set(key, tentativeGScore);
+        fScore.set(key, tentativeGScore + heuristic(neighbor, goal));
+        if (!openSet.find(n => n.x === neighbor.x && n.y === neighbor.y)) {
           openSet.push(neighbor);
         }
       }
-    }
+    });
   }
 
   return [];
 }
 
+export function calculatePath(startX, startY, targetX, targetY, map) {
+  const startTile = { x: startX, y: startY };
+  const goalTile = { x: targetX, y: targetY };
+  return findPath(map, startTile, goalTile);
+}
+
 export function calculateMovementCost(path, map) {
-  return path.reduce((total, tile) => {
-    const terrainType = map[tile.y]?.[tile.x]?.type ?? 'grassland';
-    return total + getMovementCost(terrainType);
+  if (!path) return Infinity;
+  return path.reduce((sum, step) => {
+    const tile = map[step.y]?.[step.x];
+    if (!tile) return sum + 1;
+    return sum + (terrainCosts[tile.type] ?? 1);
   }, 0);
 }
+
 
 
