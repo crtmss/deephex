@@ -2,9 +2,9 @@
 
 const terrainMovementCosts = {
   grassland: 1,
-  forest: 2,
+  sand: 2,
+  mud: 3,
   mountain: Infinity,
-  swamp: 3,
   water: Infinity
 };
 
@@ -16,9 +16,8 @@ export function isPassable(terrainType) {
   return getMovementCost(terrainType) !== Infinity;
 }
 
-// ✅ NEW: Check if a specific tile is blocked
 export function isTileBlocked(x, y, map) {
   const tile = map?.[y]?.[x];
-  if (!tile) return true; // out of bounds
-  return !isPassable(tile.terrain);
+  if (!tile) return true;
+  return !isPassable(tile.type);
 }
