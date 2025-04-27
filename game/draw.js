@@ -3,29 +3,26 @@
 const SQRT3 = Math.sqrt(3);
 import { getState } from './game-state.js';
 
-export function drawTerrain(ctx, col, row, terrain, size, highlight = false) {
+export function drawTerrain(ctx, col, row, terrain, size) {
   const { x, y } = hexToPixel(col, row, size);
   const corners = getHexCorners(x, y, size);
 
   ctx.beginPath();
   ctx.moveTo(corners[0].x, corners[0].y);
-  for (let i = 1; i < 6; i++) {
+  for (let i = 1; i < corners.length; i++) {
     ctx.lineTo(corners[i].x, corners[i].y);
   }
   ctx.closePath();
 
   ctx.fillStyle = terrainColor(terrain);
   ctx.fill();
-
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.strokeStyle = highlight ? 'rgba(255, 255, 0, 0.8)' : '#444';
-  ctx.lineWidth = highlight ? 3 : 1;
+  ctx.strokeStyle = "#444";
   ctx.stroke();
 }
 
 export function drawUnit(ctx, unit, size) {
   const { x, y } = hexToPixel(unit.x, unit.y, size);
+
   ctx.beginPath();
   ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
   ctx.fillStyle = unit.owner === 'player1' ? "red" : "blue";
@@ -34,10 +31,9 @@ export function drawUnit(ctx, unit, size) {
   ctx.stroke();
 
   const selectedUnitId = getState().selectedUnitId;
-  if (unit.id === selectedUnitId) {
-    const pulse = 1 + Math.sin(Date.now() / 300) * 0.3;
+  if (selectedUnitId && unit.id === selectedUnitId) {
     ctx.beginPath();
-    ctx.arc(x, y, (size / 6) * pulse, 0, 2 * Math.PI);
+    ctx.arc(x, y, size / 6, 0, 2 * Math.PI);
     ctx.fillStyle = 'white';
     ctx.fill();
   }
@@ -57,7 +53,7 @@ function terrainColor(type) {
 function hexToPixel(col, row, size) {
   const canvas = document.getElementById('gameCanvas');
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1); // ✅ slight vertical offset
+  const y = size * 1.5 * (row + 1); // ✅ pushed one row down
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
@@ -74,6 +70,7 @@ function getHexCorners(cx, cy, size) {
   }
   return corners;
 }
+
 
 
 
