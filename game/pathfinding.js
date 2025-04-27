@@ -2,67 +2,67 @@
 
 const terrainCosts = {
   grassland: 1,
-  sand: 2,
   mud: 3,
+  sand: 2,
   mountain: Infinity,
-  water: Infinity
+  water: Infinity,
 };
 
 function heuristic(a, b) {
-  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+  return Math.abs(a.q - b.q) + Math.abs(a.r - b.r);
 }
 
 function getNeighbors(map, node) {
   const directions = [
-    { dx: 1, dy: 0 },
-    { dx: 1, dy: -1 },
-    { dx: 0, dy: -1 },
-    { dx: -1, dy: 0 },
-    { dx: -1, dy: 1 },
-    { dx: 0, dy: 1 },
+    { dq: 1, dr: 0 },
+    { dq: 1, dr: -1 },
+    { dq: 0, dr: -1 },
+    { dq: -1, dr: 0 },
+    { dq: -1, dr: 1 },
+    { dq: 0, dr: 1 },
   ];
   const neighbors = [];
-  directions.forEach(({ dx, dy }) => {
-    const x = node.x + dx;
-    const y = node.y + dy;
-    if (map[y] && map[y][x] && terrainCosts[map[y][x].type] !== Infinity) {
-      neighbors.push({ x, y });
+  directions.forEach(({ dq, dr }) => {
+    const q = node.q + dq;
+    const r = node.r + dr;
+    if (map[r] && map[r][q]) {
+      neighbors.push(map[r][q]);
     }
   });
   return neighbors;
 }
 
 export function findPath(map, start, goal) {
-  const openSet = [{ x: start.x, y: start.y }];
+  if (!start || !goal) return []; // ✅ Guard
+
+  const openSet = [start];
   const cameFrom = new Map();
   const gScore = new Map();
-  gScore.set(start.y * 100 + start.x, 0);
+  gScore.set(start, 0);
   const fScore = new Map();
-  fScore.set(start.y * 100 + start.x, heuristic(start, goal));
+  fScore.set(start, heuristic(start, goal));
 
   while (openSet.length > 0) {
-    openSet.sort((a, b) => fScore.get(a.y * 100 + a.x) - fScore.get(b.y * 100 + b.x));
+    openSet.sort((a, b) => fScore.get(a) - fScore.get(b));
     const current = openSet.shift();
-    if (current.x === goal.x && current.y === goal.y) {
+    if (current === goal) {
       const path = [];
       let temp = current;
-      while (cameFrom.has(temp.y * 100 + temp.x)) {
+      while (cameFrom.has(temp)) {
         path.push(temp);
-        temp = cameFrom.get(temp.y * 100 + temp.x);
+        temp = cameFrom.get(temp);
       }
       path.push(start);
       return path.reverse();
     }
 
     getNeighbors(map, current).forEach((neighbor) => {
-      const key = neighbor.y * 100 + neighbor.x;
-      const tentativeGScore = gScore.get(current.y * 100 + current.x) + (terrainCosts[map[neighbor.y][neighbor.x].type] ?? 1);
-
-      if (tentativeGScore < (gScore.get(key) || Infinity)) {
-        cameFrom.set(key, current);
-        gScore.set(key, tentativeGScore);
-        fScore.set(key, tentativeGScore + heuristic(neighbor, goal));
-        if (!openSet.find(n => n.x === neighbor.x && n.y === neighbor.y)) {
+      const tentativeGScore = gScore.get(current) + (terrainCosts[neighbor.type] ?? 1);
+      if (tentativeGScore < (gScore.get(neighbor) || Infinity)) {
+        cameFrom.set(neighbor, current);
+        gScore.set(neighbor, tentativeGScore);
+        fScore.set(neighbor, tentativeGScore + heuristic(neighbor, goal));
+        if (!openSet.includes(neighbor)) {
           openSet.push(neighbor);
         }
       }
@@ -73,19 +73,20 @@ export function findPath(map, start, goal) {
 }
 
 export function calculatePath(startX, startY, targetX, targetY, map) {
-  const startTile = { x: startX, y: startY };
-  const goalTile = { x: targetX, y: targetY };
-  return findPath(map, startTile, goalTile);
+  const start = map[startY]?.[startX];
+  const goal = map[targetY]?.[targetX];
+  if (!start || !goal) return []; // ✅ Return empty path if bad click
+
+  return findPath(map, start, goal);
 }
 
 export function calculateMovementCost(path, map) {
-  if (!path) return Infinity;
-  return path.reduce((sum, step) => {
-    const tile = map[step.y]?.[step.x];
-    if (!tile) return sum + 1;
-    return sum + (terrainCosts[tile.type] ?? 1);
+  return path.reduce((total, tile) => {
+    const terrain = tile.type || 'grassland';
+    return total + (terrainCosts[terrain] ?? 1);
   }, 0);
 }
+
 
 
 
