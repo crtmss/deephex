@@ -67,23 +67,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
 
     const state = getState();
-    const selectedUnitId = state.selectedUnitId;
-    const selectedUnit = state.units.find(u => u.id === selectedUnitId);
+    const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
 
     if (selectedUnit && state.currentTurn === state.playerId) {
-      // Try moving
       const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
       const cost = calculateMovementCost(path, state.map);
 
-      if (path.length > 0 && selectedUnit.mp >= cost) {
+      if (path && path.length > 1 && selectedUnit.mp >= cost) {
         selectedUnit.mp -= cost;
-        animateMovement(selectedUnit, path, async () => {
+        animateMovement(selectedUnit, path.slice(1), async () => {
           await pushStateToSupabase();
           updateGameUI();
         });
       }
     } else {
-      // No unit selected → Select if clicked on own unit
       const clickedUnit = state.units.find((u) => u.x === col && u.y === row && u.owner === state.playerId);
       if (clickedUnit) {
         setState({
