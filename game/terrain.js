@@ -18,6 +18,6 @@ export function isPassable(terrainType) {
 
 export function isTileBlocked(x, y, map) {
   const tile = map?.[y]?.[x];
-  if (!tile) return true;
+  if (!tile) return true; // out of bounds
   return !isPassable(tile.type);
 }
