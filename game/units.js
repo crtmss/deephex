@@ -71,6 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedUnit = state.units.find(u => u.id === selectedUnitId);
 
     if (selectedUnit && state.currentTurn === state.playerId) {
+      // Try moving
       const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
       const cost = calculateMovementCost(path, state.map);
 
@@ -82,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
       }
     } else {
+      // No unit selected → Select if clicked on own unit
       const clickedUnit = state.units.find((u) => u.x === col && u.y === row && u.owner === state.playerId);
       if (clickedUnit) {
         setState({
@@ -103,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!unit || state.currentTurn !== state.playerId) return;
 
     const path = calculatePath(unit.x, unit.y, col, row, state.map);
-    if (path) {
+    if (path && path.length > 0) {
       const cost = calculateMovementCost(path, state.map);
       showPathCost(path, cost);
     } else {
@@ -132,4 +134,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export { performAction, endTurn };
-
