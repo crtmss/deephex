@@ -1,5 +1,8 @@
-const SQRT3 = Math.sqrt(3);
+// File: game/draw.js
+
 import { getState } from './game-state.js';
+
+const SQRT3 = Math.sqrt(3);
 
 export function drawTerrain(ctx, col, row, terrain, size) {
   const { x, y } = hexToPixel(col, row, size);
@@ -37,6 +40,16 @@ export function drawUnit(ctx, unit, size) {
   }
 }
 
+// ✅ New: Highlight a tile
+export function highlightTile(ctx, col, row, size) {
+  const { x, y } = hexToPixel(col, row, size);
+  ctx.beginPath();
+  ctx.arc(x, y, size / 3, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'yellow';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
 function terrainColor(type) {
   switch (type) {
     case "mountain": return "#777";
@@ -51,7 +64,7 @@ function terrainColor(type) {
 function hexToPixel(col, row, size) {
   const canvas = document.getElementById('gameCanvas');
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1);
+  const y = size * 1.5 * (row + 1); // shifted
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
