@@ -3,6 +3,7 @@
 import { drawMap } from './ui.js';
 
 let state = {
+  debugEnabled: false,
   units: [],
   currentTurn: null,
   map: [],
