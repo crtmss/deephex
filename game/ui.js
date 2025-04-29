@@ -22,7 +22,7 @@ export function drawMap() {
   for (let y = 0; y < state.map.length; y++) {
     for (let x = 0; x < state.map[y].length; x++) {
       const tile = state.map[y][x];
-      drawTerrain(ctx, x, y, tile.terrain, hexSize); // ✅ Use tile.terrain
+      drawTerrain(ctx, x, y, tile.type, hexSize); // ✅ draw by tile.type
     }
   }
 
