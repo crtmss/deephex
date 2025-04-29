@@ -1,13 +1,15 @@
 // File: game/pathfinding.js
 
-import { isTileBlocked } from './terrain.js';
+const terrainCosts = {
+  grassland: 1,
+  sand: 2,
+  mud: 3,
+  mountain: Infinity,
+  water: Infinity
+};
 
 function heuristic(a, b) {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
-}
-
-function nodeKey(x, y) {
-  return `${x},${y}`;
 }
 
 function getNeighbors(map, node) {
@@ -20,15 +22,13 @@ function getNeighbors(map, node) {
     { dx: 0, dy: 1 }
   ];
   const neighbors = [];
-
-  for (const { dx, dy } of directions) {
+  for (let { dx, dy } of directions) {
     const x = node.x + dx;
     const y = node.y + dy;
-    if (map[y] && map[y][x] && !isTileBlocked(x, y, map)) {
+    if (map[y]?.[x] && terrainCosts[map[y][x].type] !== Infinity) {
       neighbors.push(map[y][x]);
     }
   }
-
   return neighbors;
 }
 
@@ -37,39 +37,29 @@ export function findPath(map, start, goal) {
   const cameFrom = new Map();
   const gScore = new Map();
   const fScore = new Map();
-
-  gScore.set(nodeKey(start.x, start.y), 0);
-  fScore.set(nodeKey(start.x, start.y), heuristic(start, goal));
+  gScore.set(start, 0);
+  fScore.set(start, heuristic(start, goal));
 
   while (openSet.length > 0) {
-    openSet.sort((a, b) =>
-      (fScore.get(nodeKey(a.x, a.y)) || Infinity) -
-      (fScore.get(nodeKey(b.x, b.y)) || Infinity)
-    );
-
+    openSet.sort((a, b) => fScore.get(a) - fScore.get(b));
     const current = openSet.shift();
-    if (current.x === goal.x && current.y === goal.y) {
+    if (current === goal) {
       const path = [];
-      let currentKey = nodeKey(current.x, current.y);
-      while (cameFrom.has(currentKey)) {
-        const [cx, cy] = currentKey.split(',').map(Number);
-        path.push({ x: cx, y: cy });
-        currentKey = cameFrom.get(currentKey);
+      let temp = current;
+      while (cameFrom.has(temp)) {
+        path.unshift(temp);
+        temp = cameFrom.get(temp);
       }
-      path.push({ x: start.x, y: start.y });
-      return path.reverse();
+      return path;
     }
 
     for (const neighbor of getNeighbors(map, current)) {
-      const nKey = nodeKey(neighbor.x, neighbor.y);
-      const cKey = nodeKey(current.x, current.y);
-      const tentativeG = (gScore.get(cKey) || Infinity) + (neighbor.movementCost || 1);
-
-      if (tentativeG < (gScore.get(nKey) || Infinity)) {
-        cameFrom.set(nKey, cKey);
-        gScore.set(nKey, tentativeG);
-        fScore.set(nKey, tentativeG + heuristic(neighbor, goal));
-        if (!openSet.find(n => n.x === neighbor.x && n.y === neighbor.y)) {
+      const tentativeG = gScore.get(current) + terrainCosts[neighbor.type];
+      if (tentativeG < (gScore.get(neighbor) || Infinity)) {
+        cameFrom.set(neighbor, current);
+        gScore.set(neighbor, tentativeG);
+        fScore.set(neighbor, tentativeG + heuristic(neighbor, goal));
+        if (!openSet.includes(neighbor)) {
           openSet.push(neighbor);
         }
       }
@@ -82,13 +72,13 @@ export function findPath(map, start, goal) {
 export function calculatePath(startX, startY, targetX, targetY, map) {
   const start = map[startY]?.[startX];
   const goal = map[targetY]?.[targetX];
-  if (!start || !goal) return [];
+  if (!start || !goal) return null;
   return findPath(map, start, goal);
 }
 
 export function calculateMovementCost(path, map) {
   return path.reduce((total, tile) => {
-    const terrain = map[tile.y]?.[tile.x];
-    return total + (terrain?.movementCost || 1);
+    const terrain = tile.type || 'grassland';
+    return total + (terrainCosts[terrain] ?? 1);
   }, 0);
 }
