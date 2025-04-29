@@ -109,6 +109,7 @@ document.addEventListener('DOMContentLoaded', () => {
       showPathCost(path, cost);
     } else {
       drawMap();
+      drawDebugInfo(col, row);
     }
   });
 
