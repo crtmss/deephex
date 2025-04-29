@@ -1,27 +1,27 @@
-// Corrected units.js
+// File: game/units.js
 
 import { getState, setState } from './game-state.js';
 import { updateGameUI, showPathCost, drawMap } from './ui.js';
-import { calculatePath, calculateMovementCost, findReachableTiles } from './pathfinding.js';
+import { calculatePath, calculateMovementCost } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
 import { pushStateToSupabase } from '../lib/supabase.js';
 
 function performAction(unitId, targetX, targetY) {
   const state = getState();
-  const unit = state.units.find(u => u.id === unitId && u.owner === state.playerId);
+  const unit = state.units.find((u) => u.id === unitId && u.owner === state.playerId);
   if (!unit || state.currentTurn !== state.playerId || unit.ap < 1) return;
 
   const dx = targetX - unit.x;
   const dy = targetY - unit.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
-  if (distance <= 3 && !isTileBlocked(targetX, targetY)) {
+  if (distance <= 3 && !isTileBlocked(targetX, targetY, state.map)) {
     unit.ap -= 1;
-    const targetUnit = state.units.find(u => u.x === targetX && u.y === targetY);
+    const targetUnit = state.units.find((u) => u.x === targetX && u.y === targetY);
     if (targetUnit) {
       targetUnit.hp -= 1;
       if (targetUnit.hp <= 0) {
-        state.units = state.units.filter(u => u.id !== targetUnit.id);
+        state.units = state.units.filter((u) => u.id !== targetUnit.id);
       }
     }
     setState(state);
@@ -33,9 +33,9 @@ function performAction(unitId, targetX, targetY) {
 function endTurn() {
   const state = getState();
   state.currentTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
-  state.units.forEach(unit => {
+  state.units.forEach((unit) => {
     if (unit.owner === state.currentTurn) {
-      unit.mp = 10;
+      unit.mp = 10; // Updated to 10 movement points
       unit.ap = 1;
     }
   });
@@ -67,17 +67,28 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
 
     const state = getState();
-    const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
+    const selectedUnitId = state.selectedUnitId;
+    const selectedUnit = state.units.find(u => u.id === selectedUnitId);
 
     if (selectedUnit && state.currentTurn === state.playerId) {
       const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
       const cost = calculateMovementCost(path, state.map);
-      if (path && cost <= selectedUnit.mp) {
+
+      if (path.length > 0 && selectedUnit.mp >= cost) {
         selectedUnit.mp -= cost;
         animateMovement(selectedUnit, path, async () => {
           await pushStateToSupabase();
           updateGameUI();
         });
+      }
+    } else {
+      const clickedUnit = state.units.find((u) => u.x === col && u.y === row && u.owner === state.playerId);
+      if (clickedUnit) {
+        setState({
+          ...state,
+          selectedUnitId: clickedUnit.id
+        });
+        updateGameUI();
       }
     }
   });
@@ -88,11 +99,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const row = Math.floor(((e.clientY - rect.top) / canvas.height) * 25);
 
     const state = getState();
-    const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
-    if (!selectedUnit || state.currentTurn !== state.playerId) return;
+    const unit = state.units.find((u) => u.id === state.selectedUnitId);
+    if (!unit || state.currentTurn !== state.playerId) return;
 
-    const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
-    if (path) {
+    const path = calculatePath(unit.x, unit.y, col, row, state.map);
+    if (path && path.length > 0) {
       const cost = calculateMovementCost(path, state.map);
       showPathCost(path, cost);
     } else {
@@ -104,14 +115,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (selectBtn) {
     selectBtn.addEventListener('click', () => {
       const state = getState();
-      if (state.currentTurn !== state.playerId) {
+      if (state.currentTurn === state.playerId) {
+        const unit = state.units.find((u) => u.owner === state.playerId);
+        if (unit) {
+          setState({
+            ...state,
+            selectedUnitId: unit.id
+          });
+          updateGameUI();
+        }
+      } else {
         alert('It is not your turn.');
-        return;
-      }
-      const unit = state.units.find(u => u.owner === state.playerId);
-      if (unit) {
-        setState({...state, selectedUnitId: unit.id});
-        updateGameUI();
       }
     });
   }
