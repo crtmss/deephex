@@ -3,7 +3,7 @@
 const SQRT3 = Math.sqrt(3);
 import { getState } from './game-state.js';
 
-export function drawTerrain(ctx, col, row, terrain, size) {
+export function drawTerrain(ctx, col, row, terrainType, size) {
   const { x, y } = hexToPixel(col, row, size);
   const corners = getHexCorners(x, y, size);
 
@@ -14,7 +14,7 @@ export function drawTerrain(ctx, col, row, terrain, size) {
   }
   ctx.closePath();
 
-  ctx.fillStyle = terrainColor(terrain);
+  ctx.fillStyle = terrainColor(terrainType);
   ctx.fill();
   ctx.strokeStyle = "#444";
   ctx.stroke();
@@ -42,10 +42,10 @@ export function drawUnit(ctx, unit, size) {
 function terrainColor(type) {
   switch (type) {
     case "grassland": return "#34a853";
-    case "mud": return "#6b4c3b";
-    case "sand": return "#f4e7b5";
-    case "mountain": return "#777";
-    case "water": return "#3399ff";
+    case "mud": return "#795548";
+    case "sand": return "#FFF59D";
+    case "mountain": return "#9E9E9E";
+    case "water": return "#4da6ff";
     default: return "#cccccc"; // fallback
   }
 }
