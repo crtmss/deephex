@@ -80,3 +80,30 @@ export function updateGameUI() {
   drawMap();
   updateTurnDisplay(state.currentTurn);
 }
+
+
+export function drawDebugInfo(col, row) {
+  const state = getState();
+  if (!state.debugEnabled) return;
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const tile = state.map?.[row]?.[col];
+  if (!tile) return;
+
+  const hexSize = 16;
+  const { x, y } = hexToPixel(col, row, hexSize);
+
+  let debugText = `(${col},${row}) ${tile.type}`;
+  const unit = state.units.find(u => u.x === col && u.y === row);
+  if (unit) debugText += ` | ${unit.owner}`;
+
+  ctx.fillStyle = 'black';
+  ctx.font = '12px monospace';
+  ctx.fillText(debugText, x + 10, y - 10);
+}
+
+export function toggleDebugMode() {
+  const state = getState();
+  setState({ ...state, debugEnabled: !state.debugEnabled });
+}
