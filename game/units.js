@@ -1,7 +1,6 @@
 import { getState, setState } from './game-state.js';
 import { updateGameUI, showPathCost, drawMap } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
-import { isTileBlocked } from './terrain.js';
 import { pushStateToSupabase } from '../lib/supabase.js';
 
 function performAction(unitId, targetX, targetY) {
@@ -13,7 +12,7 @@ function performAction(unitId, targetX, targetY) {
   const dy = targetY - unit.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
-  if (distance <= 3 && !isTileBlocked(targetX, targetY, state.map)) {
+  if (distance <= 3) {
     unit.ap -= 1;
     const targetUnit = state.units.find((u) => u.x === targetX && u.y === targetY);
     if (targetUnit) {
@@ -52,7 +51,7 @@ function animateMovement(unit, path, callback) {
   unit.y = nextStep.y;
   setState(getState());
   updateGameUI();
-  setTimeout(() => animateMovement(unit, rest, callback), 150);
+  setTimeout(() => animateMovement(unit, rest, callback), 120);
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -68,11 +67,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedUnitId = state.selectedUnitId;
     const selectedUnit = state.units.find(u => u.id === selectedUnitId);
 
+    if (!state.map[row] || !state.map[row][col]) return; // ✅ SAFETY CHECK
+
     if (selectedUnit && state.currentTurn === state.playerId) {
       const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
-      const cost = calculateMovementCost(path, state.map);
+      if (!path || path.length === 0) return; // ✅ INVALID PATH
 
-      if (path && path.length > 0 && selectedUnit.mp >= cost) {
+      const cost = calculateMovementCost(path, state.map);
+      if (selectedUnit.mp >= cost) {
         selectedUnit.mp -= cost;
         animateMovement(selectedUnit, path, async () => {
           await pushStateToSupabase();
@@ -99,6 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = getState();
     const unit = state.units.find((u) => u.id === state.selectedUnitId);
     if (!unit || state.currentTurn !== state.playerId) return;
+
+    if (!state.map[row] || !state.map[row][col]) {
+      drawMap();
+      return;
+    }
 
     const path = calculatePath(unit.x, unit.y, col, row, state.map);
     if (path && path.length > 0) {
