@@ -46,14 +46,14 @@ function terrainColor(type) {
     case "sand": return "#f4e7b5";
     case "mountain": return "#777";
     case "water": return "#3399ff";
-    default: return "#cccccc";
+    default: return "#cccccc"; // fallback
   }
 }
 
 function hexToPixel(col, row, size) {
   const canvas = document.getElementById('gameCanvas');
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1); // Shifted down
+  const y = size * 1.5 * (row + 1); // shifted down
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
@@ -63,10 +63,7 @@ function getHexCorners(cx, cy, size) {
   const corners = [];
   for (let i = 0; i < 6; i++) {
     const angle = Math.PI / 180 * (60 * i - 30);
-    corners.push({
-      x: cx + size * Math.cos(angle),
-      y: cy + size * Math.sin(angle)
-    });
+    corners.push({ x: cx + size * Math.cos(angle), y: cy + size * Math.sin(angle) });
   }
   return corners;
 }
