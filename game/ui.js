@@ -16,14 +16,13 @@ export function drawMap() {
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height); // ✅ Always clear
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const hexSize = 16;
-
   for (let y = 0; y < state.map.length; y++) {
     for (let x = 0; x < state.map[y].length; x++) {
       const tile = state.map[y][x];
-      drawTerrain(ctx, x, y, tile.terrain, hexSize);
+      drawTerrain(ctx, x, y, tile.terrain, hexSize); // ✅ Use tile.terrain
     }
   }
 
@@ -33,15 +32,13 @@ export function drawMap() {
 }
 
 export function showPathCost(path, cost) {
-  const state = getState();
+  drawMap();
+
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return;
-
-  drawMap(); // ✅ Clear and redraw base map
-
   const ctx = canvas.getContext('2d');
-  const hexSize = 16;
 
+  const hexSize = 16;
   ctx.strokeStyle = 'rgba(255, 255, 0, 0.7)';
   ctx.lineWidth = 2;
   ctx.beginPath();
@@ -55,7 +52,6 @@ export function showPathCost(path, cost) {
       ctx.lineTo(px, py);
     }
   }
-
   ctx.stroke();
 
   if (path.length > 0) {
@@ -73,10 +69,9 @@ function hexToPixel(col, row, size) {
   if (!canvas) return { x: 0, y: 0 };
 
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1); // ✅ Shifted down 1 row
+  const y = size * 1.5 * (row + 1);
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
-
   return { x: x + offsetX, y: y + offsetY };
 }
 
@@ -85,5 +80,3 @@ export function updateGameUI() {
   drawMap();
   updateTurnDisplay(state.currentTurn);
 }
-
-
