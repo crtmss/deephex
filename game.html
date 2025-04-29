@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <button id="debugBtn" class="debug-button">Debug</button>
+
 
   <div id="room-code-display" class="above-canvas"></div>
 
@@ -58,6 +60,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
+      document.getElementById('debugBtn')?.addEventListener('click', () => {
+        import('./game/ui.js').then(mod => mod.toggleDebugMode());
+      });
+
       const params = new URLSearchParams(window.location.search);
       const room_code = params.get('room');
       const playerFlag = params.get('player');
