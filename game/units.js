@@ -1,5 +1,3 @@
-// File: game/units.js
-
 import { getState, setState } from './game-state.js';
 import { updateGameUI, showPathCost, drawMap } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
@@ -35,7 +33,7 @@ function endTurn() {
   state.currentTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
   state.units.forEach((unit) => {
     if (unit.owner === state.currentTurn) {
-      unit.mp = 10; // Updated to 10 movement points
+      unit.mp = 10;
       unit.ap = 1;
     }
   });
@@ -74,7 +72,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
       const cost = calculateMovementCost(path, state.map);
 
-      if (path.length > 0 && selectedUnit.mp >= cost) {
+      if (path && path.length > 0 && selectedUnit.mp >= cost) {
         selectedUnit.mp -= cost;
         animateMovement(selectedUnit, path, async () => {
           await pushStateToSupabase();
