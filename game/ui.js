@@ -1,7 +1,7 @@
 // File: game/ui.js
 
 import { drawTerrain, drawUnit } from './draw.js';
-import { getState, setState } from './game-state.js'; // ✅ Import setState
+import { getState, setState } from './game-state.js';
 
 export function updateTurnDisplay(turn) {
   const turnInfo = document.getElementById('turn-display');
@@ -69,7 +69,7 @@ function hexToPixel(col, row, size) {
   if (!canvas) return { x: 0, y: 0 };
 
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1); // Offset down by 1 row
+  const y = size * 1.5 * (row + 1);
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
@@ -104,5 +104,7 @@ export function drawDebugInfo(col, row) {
 
 export function toggleDebugMode() {
   const state = getState();
-  setState({ ...state, debugEnabled: !state.debugEnabled });
+  const enabled = !state.debugEnabled;
+  setState({ ...state, debugEnabled: enabled });
+  console.log(enabled ? '✅ Entered debug mode' : '❌ Exited debug mode');
 }
