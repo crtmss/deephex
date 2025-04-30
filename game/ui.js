@@ -26,12 +26,11 @@ export function drawMap() {
     }
   }
 
-  // ✅ Highlight hovered hex
-  if (hoveredHex) drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
+  if (hoveredHex) {
+    drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
+  }
 
-  state.units.forEach((unit) => {
-    drawUnit(ctx, unit, hexSize);
-  });
+  state.units.forEach(unit => drawUnit(ctx, unit, hexSize));
 }
 
 export function showPathCost(path, cost) {
@@ -49,11 +48,8 @@ export function showPathCost(path, cost) {
   for (let i = 0; i < path.length; i++) {
     const { x, y } = path[i];
     const { x: px, y: py } = hexToPixel(x, y, hexSize);
-    if (i === 0) {
-      ctx.moveTo(px, py);
-    } else {
-      ctx.lineTo(px, py);
-    }
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
   }
   ctx.stroke();
 
@@ -68,11 +64,9 @@ export function showPathCost(path, cost) {
 
 function hexToPixel(col, row, size) {
   const SQRT3 = Math.sqrt(3);
-  const canvas = document.getElementById('gameCanvas');
-  if (!canvas) return { x: 0, y: 0 };
-
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1);
+  const y = size * 1.5 * row;
+  const canvas = document.getElementById('gameCanvas');
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
@@ -83,12 +77,15 @@ function drawHoveredHex(ctx, col, row, size) {
   const corners = [];
   for (let i = 0; i < 6; i++) {
     const angle = Math.PI / 180 * (60 * i - 30);
-    corners.push({ x: x + size * Math.cos(angle), y: y + size * Math.sin(angle) });
+    corners.push({
+      x: x + size * Math.cos(angle),
+      y: y + size * Math.sin(angle)
+    });
   }
 
   ctx.beginPath();
   ctx.moveTo(corners[0].x, corners[0].y);
-  for (let i = 1; i < 6; i++) {
+  for (let i = 1; i < corners.length; i++) {
     ctx.lineTo(corners[i].x, corners[i].y);
   }
   ctx.closePath();
@@ -99,7 +96,7 @@ function drawHoveredHex(ctx, col, row, size) {
 
 export function setHoveredHex(col, row) {
   hoveredHex = { col, row };
-  drawMap(); // Re-render with highlight
+  drawMap();
 }
 
 export function updateGameUI() {
