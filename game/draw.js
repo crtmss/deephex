@@ -1,5 +1,3 @@
-// File: game/draw.js
-
 const SQRT3 = Math.sqrt(3);
 import { getState } from './game-state.js';
 
@@ -46,16 +44,21 @@ function terrainColor(type) {
     case "sand": return "#FFF59D";
     case "mountain": return "#9E9E9E";
     case "water": return "#4da6ff";
-    default: return "#cccccc"; // fallback
+    default: return "#cccccc";
   }
 }
 
 function hexToPixel(col, row, size) {
+  const SQRT3 = Math.sqrt(3);
   const canvas = document.getElementById('gameCanvas');
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1); // shifted down
-  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
-  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+  const y = size * 1.5 * row;
+
+  const mapWidth = 25 * size * SQRT3;
+  const mapHeight = 25 * size * 1.5;
+  const offsetX = (canvas.width - mapWidth) / 2;
+  const offsetY = (canvas.height - mapHeight) / 2;
+
   return { x: x + offsetX, y: y + offsetY };
 }
 
@@ -63,7 +66,10 @@ function getHexCorners(cx, cy, size) {
   const corners = [];
   for (let i = 0; i < 6; i++) {
     const angle = Math.PI / 180 * (60 * i - 30);
-    corners.push({ x: cx + size * Math.cos(angle), y: cy + size * Math.sin(angle) });
+    corners.push({
+      x: cx + size * Math.cos(angle),
+      y: cy + size * Math.sin(angle)
+    });
   }
   return corners;
 }
