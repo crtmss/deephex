@@ -1,7 +1,7 @@
 // File: game/ui.js
 
 import { drawTerrain, drawUnit } from './draw.js';
-import { getState } from './game-state.js';
+import { getState, setState } from './game-state.js'; // ✅ Import setState
 
 export function updateTurnDisplay(turn) {
   const turnInfo = document.getElementById('turn-display');
@@ -22,7 +22,7 @@ export function drawMap() {
   for (let y = 0; y < state.map.length; y++) {
     for (let x = 0; x < state.map[y].length; x++) {
       const tile = state.map[y][x];
-      drawTerrain(ctx, x, y, tile.type, hexSize); // ✅ draw by tile.type
+      drawTerrain(ctx, x, y, tile.type, hexSize);
     }
   }
 
@@ -69,7 +69,7 @@ function hexToPixel(col, row, size) {
   if (!canvas) return { x: 0, y: 0 };
 
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * (row + 1);
+  const y = size * 1.5 * (row + 1); // Offset down by 1 row
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
@@ -80,7 +80,6 @@ export function updateGameUI() {
   drawMap();
   updateTurnDisplay(state.currentTurn);
 }
-
 
 export function drawDebugInfo(col, row) {
   const state = getState();
