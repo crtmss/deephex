@@ -1,6 +1,8 @@
 import { drawTerrain, drawUnit } from './draw.js';
 import { getState, setState } from './game-state.js';
 
+let hoveredHex = null;
+
 export function updateTurnDisplay(turn) {
   const turnInfo = document.getElementById('turn-display');
   if (turnInfo) {
@@ -23,6 +25,9 @@ export function drawMap() {
       drawTerrain(ctx, x, y, tile.type, hexSize);
     }
   }
+
+  // ✅ Highlight hovered hex
+  if (hoveredHex) drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
 
   state.units.forEach((unit) => {
     drawUnit(ctx, unit, hexSize);
@@ -67,14 +72,34 @@ function hexToPixel(col, row, size) {
   if (!canvas) return { x: 0, y: 0 };
 
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * row;
-
-  const mapWidth = 25 * size * SQRT3;
-  const mapHeight = 25 * size * 1.5;
-  const offsetX = (canvas.width - mapWidth) / 2;
-  const offsetY = (canvas.height - mapHeight) / 2;
-
+  const y = size * 1.5 * (row + 1);
+  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
+}
+
+function drawHoveredHex(ctx, col, row, size) {
+  const { x, y } = hexToPixel(col, row, size);
+  const corners = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.PI / 180 * (60 * i - 30);
+    corners.push({ x: x + size * Math.cos(angle), y: y + size * Math.sin(angle) });
+  }
+
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < 6; i++) {
+    ctx.lineTo(corners[i].x, corners[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = '#ffcc00';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+export function setHoveredHex(col, row) {
+  hoveredHex = { col, row };
+  drawMap(); // Re-render with highlight
 }
 
 export function updateGameUI() {
