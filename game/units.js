@@ -61,22 +61,20 @@ function animateMovement(unit, path, callback) {
   setTimeout(() => animateMovement(unit, rest, callback), 100);
 }
 
-// 🔧 FIXED hex detection
 function getHexAtMouse(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
   const size = 16;
   const SQRT3 = Math.sqrt(3);
-  const rect = canvas.getBoundingClientRect();
-  const px = e.clientX - rect.left;
-  const py = e.clientY - rect.top;
-
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+  const adjustedX = x - offsetX;
+  const adjustedY = y - offsetY;
 
-  const x = px - offsetX;
-  const y = py - offsetY;
-
-  const row = Math.floor(y / (1.5 * size));
-  const col = Math.floor((x / (SQRT3 * size)) - 0.5 * (row % 2));
+  const row = Math.round(adjustedY / (size * 1.5) - 1);
+  const col = Math.round(adjustedX / (size * SQRT3) - 0.5 * (row % 2));
 
   return { col, row };
 }
