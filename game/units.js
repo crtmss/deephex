@@ -1,5 +1,11 @@
 import { getState, setState } from './game-state.js';
-import { updateGameUI, showPathCost, drawMap } from './ui.js';
+import {
+  updateGameUI,
+  showPathCost,
+  drawMap,
+  setHoveredHex,
+  drawDebugInfo
+} from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
 import { pushStateToSupabase } from '../lib/supabase.js';
@@ -55,17 +61,30 @@ function animateMovement(unit, path, callback) {
   setTimeout(() => animateMovement(unit, rest, callback), 100);
 }
 
+function getHexAtMouse(e, canvas) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+
+  const size = 16;
+  const SQRT3 = Math.sqrt(3);
+  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+  const adjustedX = x - offsetX;
+  const adjustedY = y - offsetY;
+
+  const row = Math.floor(adjustedY / (size * 1.5)) - 1;
+  const col = Math.floor((adjustedX / (size * SQRT3)) - 0.5 * (row % 2));
+
+  return { col, row };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   const canvas = document.getElementById('gameCanvas');
   if (!canvas) return;
 
   canvas.addEventListener('click', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const col = Math.floor(x / 32);
-    const row = Math.floor(y / 28);
-
+    const { col, row } = getHexAtMouse(e, canvas);
     const state = getState();
     if (!state.map?.[row]?.[col]) return;
 
@@ -93,22 +112,24 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   canvas.addEventListener('mousemove', (e) => {
-    const rect = canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    const col = Math.floor(x / 32);
-    const row = Math.floor(y / 28);
-
+    const { col, row } = getHexAtMouse(e, canvas);
     const state = getState();
-    const unit = state.units.find(u => u.id === state.selectedUnitId);
-    if (!unit || state.currentTurn !== state.playerId) return;
+    if (!state.map?.[row]?.[col]) return;
 
-    const path = calculatePath(unit.x, unit.y, col, row, state.map);
-    if (path && path.length > 0) {
-      const cost = calculateMovementCost(path, state.map);
-      showPathCost(path, cost);
-    } else {
-      drawMap();
+    setHoveredHex(col, row); // ✅ highlight always
+
+    const unit = state.units.find(u => u.id === state.selectedUnitId);
+    if (unit && state.currentTurn === state.playerId) {
+      const path = calculatePath(unit.x, unit.y, col, row, state.map);
+      if (path && path.length > 0) {
+        const cost = calculateMovementCost(path, state.map);
+        showPathCost(path, cost);
+      } else {
+        drawMap();
+      }
+    }
+
+    if (state.debugEnabled) {
       drawDebugInfo(col, row);
     }
   });
@@ -128,5 +149,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 export { performAction, endTurn };
-
-
