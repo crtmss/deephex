@@ -73,8 +73,8 @@ function getHexAtMouse(e, canvas) {
   const adjustedX = x - offsetX;
   const adjustedY = y - offsetY;
 
-  const row = Math.round(adjustedY / (size * 1.5) - 1);
-  const col = Math.round(adjustedX / (size * SQRT3) - 0.5 * (row % 2));
+  const row = Math.round(adjustedY / (size * 1.5));
+  const col = Math.round((adjustedX / (size * SQRT3)) - 0.5 * (row % 2));
 
   return { col, row };
 }
