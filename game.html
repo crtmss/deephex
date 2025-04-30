@@ -9,7 +9,6 @@
 <body>
   <button id="debugBtn" class="debug-button">Debug</button>
 
-
   <div id="room-code-display" class="above-canvas"></div>
 
   <canvas id="gameCanvas" width="800" height="600"></canvas>
@@ -28,8 +27,26 @@
   <script type="module">
     import { supabase } from './lib/supabase.js';
     import { setState, getState } from './game/game-state.js';
-    import { drawMap, updateTurnDisplay, updateGameUI } from './game/ui.js';
+    import { drawMap, updateTurnDisplay, updateGameUI, drawDebugInfo, toggleDebugMode } from './game/ui.js';
     import { endTurn, performAction } from './game/units.js';
+
+    function hexAtMouse(e, canvas, size = 16) {
+      const SQRT3 = Math.sqrt(3);
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+
+      const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+      const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+
+      const px = mx - offsetX;
+      const py = my - offsetY;
+
+      const row = Math.floor(py / (size * 1.5)) - 1;
+      const col = Math.floor((px / (size * SQRT3)) - 0.5 * (row % 2));
+
+      return { col, row };
+    }
 
     async function listenToGameRoomUpdates(roomId) {
       const channel = supabase.channel(`game-${roomId}`);
@@ -51,7 +68,7 @@
             ...current,
             units: newState.units,
             currentTurn: newState.turn,
-            map: newState.map // If you want map update too (safe)
+            map: newState.map
           });
           updateGameUI();
         }
@@ -60,8 +77,16 @@
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
+      const canvas = document.getElementById('gameCanvas');
+
       document.getElementById('debugBtn')?.addEventListener('click', () => {
-        import('./game/ui.js').then(mod => mod.toggleDebugMode());
+        toggleDebugMode();
+      });
+
+      canvas.addEventListener('mousemove', (e) => {
+        const { col, row } = hexAtMouse(e, canvas);
+        drawMap();
+        drawDebugInfo(col, row);
       });
 
       const params = new URLSearchParams(window.location.search);
@@ -89,32 +114,23 @@
         return;
       }
 
-      const state = {
-        map: data.map,
-        units: data.units,
-        turn: data.turn
-      };
-
       setState({
         playerId,
         roomId: data.id,
-        map: state.map,
-        units: state.units,
-        currentTurn: state.turn,
-        player2Seen: data.player_2
+        map: data.map,
+        units: data.units,
+        currentTurn: data.turn,
+        player2Seen: data.player_2,
+        debugEnabled: false
       });
 
       drawMap();
-      updateTurnDisplay(state.turn);
-
-      // ✅ Realtime sync
+      updateTurnDisplay(data.turn);
       listenToGameRoomUpdates(data.id);
 
       document.getElementById('endTurnBtn')?.addEventListener('click', () => {
         const s = getState();
-        if (s.currentTurn === s.playerId) {
-          endTurn();
-        }
+        if (s.currentTurn === s.playerId) endTurn();
       });
 
       document.getElementById('actionBtn')?.addEventListener('click', () => {
@@ -137,8 +153,5 @@
       });
     });
   </script>
-
 </body>
 </html>
-
-
