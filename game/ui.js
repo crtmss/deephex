@@ -32,8 +32,10 @@ export function drawMap() {
   // ✅ Highlight hovered hex
   if (hoveredHex) drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
 
-  // ✅ Draw path overlay
-  drawPathOverlay(ctx, currentPath, hexSize);
+  // ✅ Draw current path if any
+  if (currentPath.length > 0) {
+    drawPath(ctx, currentPath, hexSize);
+  }
 
   state.units.forEach((unit) => {
     drawUnit(ctx, unit, hexSize);
@@ -50,30 +52,27 @@ export function setCurrentPath(path) {
   drawMap();
 }
 
-function drawPathOverlay(ctx, path, size) {
-  if (!path?.length) return;
-
-  ctx.beginPath();
-  ctx.strokeStyle = 'rgba(255, 255, 0, 0.6)';
+function drawPath(ctx, path, hexSize) {
+  ctx.strokeStyle = 'rgba(255, 255, 0, 0.7)';
   ctx.lineWidth = 2;
+  ctx.beginPath();
 
-  path.forEach((tile, index) => {
-    const { x, y } = hexToPixel(tile.x, tile.y, size);
-    if (index === 0) ctx.moveTo(x, y);
-    else ctx.lineTo(x, y);
-  });
+  for (let i = 0; i < path.length; i++) {
+    const { x, y } = path[i];
+    const { x: px, y: py } = hexToPixel(x, y, hexSize);
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
 
   ctx.stroke();
-}
 
-function hexToPixel(col, row, size) {
-  const SQRT3 = Math.sqrt(3);
-  const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * row;
-  const canvas = document.getElementById('gameCanvas');
-  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
-  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
-  return { x: x + offsetX, y: y + offsetY };
+  if (path.length > 0) {
+    const last = path[path.length - 1];
+    const { x, y } = hexToPixel(last.x, last.y, hexSize);
+    ctx.fillStyle = 'yellow';
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillText(`Cost: ${path.length}`, x - 20, y - 10);
+  }
 }
 
 function drawHoveredHex(ctx, col, row, size) {
@@ -81,10 +80,7 @@ function drawHoveredHex(ctx, col, row, size) {
   const corners = [];
   for (let i = 0; i < 6; i++) {
     const angle = Math.PI / 180 * (60 * i - 30);
-    corners.push({
-      x: x + size * Math.cos(angle),
-      y: y + size * Math.sin(angle)
-    });
+    corners.push({ x: x + size * Math.cos(angle), y: y + size * Math.sin(angle) });
   }
 
   ctx.beginPath();
@@ -96,6 +92,16 @@ function drawHoveredHex(ctx, col, row, size) {
   ctx.strokeStyle = '#ffcc00';
   ctx.lineWidth = 2;
   ctx.stroke();
+}
+
+function hexToPixel(col, row, size) {
+  const SQRT3 = Math.sqrt(3);
+  const canvas = document.getElementById('gameCanvas');
+  const x = size * SQRT3 * (col + 0.5 * (row % 2));
+  const y = size * 1.5 * row;
+  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+  return { x: x + offsetX, y: y + offsetY };
 }
 
 export function updateGameUI() {
@@ -117,7 +123,6 @@ export function drawDebugInfo(col, row) {
   const { x, y } = hexToPixel(col, row, hexSize);
 
   let debugText = `(${col},${row}) ${tile.type}`;
-  if (tile.effect) debugText += ` [${tile.effect}]`;
   const unit = state.units.find(u => u.x === col && u.y === row);
   if (unit) debugText += ` | ${unit.owner}`;
 
@@ -132,4 +137,5 @@ export function toggleDebugMode() {
   setState({ ...state, debugEnabled: enabled });
   console.log(enabled ? '✅ Entered debug mode' : '❌ Exited debug mode');
 }
+
 
