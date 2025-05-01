@@ -1,3 +1,5 @@
+// File: game/units.js
+
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
@@ -111,32 +113,27 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-canvas.addEventListener('mousemove', (e) => {
-  const { col, row } = getHexAtMouse(e, canvas);
-  const state = getState();
-  if (!state.map?.[row]?.[col]) return;
+  canvas.addEventListener('mousemove', (e) => {
+    const { col, row } = getHexAtMouse(e, canvas);
+    const state = getState();
+    if (!state.map?.[row]?.[col]) return;
 
-  setHoveredHex(col, row);
+    setHoveredHex(col, row);
 
-  const unit = state.units.find(u => u.id === state.selectedUnitId);
-  if (unit && state.currentTurn === state.playerId) {
-    const path = calculatePath(unit.x, unit.y, col, row, state.map);
-    if (path && path.length > 0) {
-      setCurrentPath(path);
-      
-      if (state.debugEnabled) {
-        const pathCoords = path.map(tile => `(${tile.x},${tile.y})`).join(', ');
-        console.log('🧭 Path:', pathCoords);
+    const unit = state.units.find(u => u.id === state.selectedUnitId);
+    if (unit && state.currentTurn === state.playerId) {
+      const path = calculatePath(unit.x, unit.y, col, row, state.map);
+      if (path && path.length > 0) {
+        setCurrentPath(path);
+      } else {
+        setCurrentPath([]);
       }
-    } else {
-      setCurrentPath([]);
     }
-  }
 
-  if (state.debugEnabled) {
-    drawDebugInfo(col, row);  // ✅ Moved outside else to ensure it's always drawn
-  }
-});
+    if (state.debugEnabled) {
+      drawDebugInfo(col, row);
+    }
+  });
 
   document.getElementById('selectUnitBtn')?.addEventListener('click', () => {
     const state = getState();
