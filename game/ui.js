@@ -49,6 +49,13 @@ export function setHoveredHex(col, row) {
 
 export function setCurrentPath(path) {
   currentPath = path;
+
+  const state = getState();
+  if (state.debugEnabled && path.length > 0) {
+    const debugCoords = path.map(p => `(hex ${p.x},${p.y})`).join(', ');
+    console.log(`[Path] Highlighted path: ${debugCoords}`);
+  }
+
   drawMap();
 }
 
@@ -137,5 +144,3 @@ export function toggleDebugMode() {
   setState({ ...state, debugEnabled: enabled });
   console.log(enabled ? '✅ Entered debug mode' : '❌ Exited debug mode');
 }
-
-
