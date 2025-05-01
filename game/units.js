@@ -111,32 +111,32 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  canvas.addEventListener('mousemove', (e) => {
-    const { col, row } = getHexAtMouse(e, canvas);
-    const state = getState();
-    if (!state.map?.[row]?.[col]) return;
+canvas.addEventListener('mousemove', (e) => {
+  const { col, row } = getHexAtMouse(e, canvas);
+  const state = getState();
+  if (!state.map?.[row]?.[col]) return;
 
-    setHoveredHex(col, row);
+  setHoveredHex(col, row);
 
-    const unit = state.units.find(u => u.id === state.selectedUnitId);
-    if (unit && state.currentTurn === state.playerId) {
-      const path = calculatePath(unit.x, unit.y, col, row, state.map);
-      if (path && path.length > 0) {
-        setCurrentPath(path);
-
-        if (state.debugEnabled) {
-          const coordString = path.map(p => `(hex ${p.x},${p.y})`).join(', ');
-          console.log('🧭 Path debug:', coordString);
-        }
-      } else {
-        setCurrentPath([]);
+  const unit = state.units.find(u => u.id === state.selectedUnitId);
+  if (unit && state.currentTurn === state.playerId) {
+    const path = calculatePath(unit.x, unit.y, col, row, state.map);
+    if (path && path.length > 0) {
+      setCurrentPath(path);
+      
+      if (state.debugEnabled) {
+        const pathCoords = path.map(tile => `(${tile.x},${tile.y})`).join(', ');
+        console.log('🧭 Path:', pathCoords);
       }
+    } else {
+      setCurrentPath([]);
     }
+  }
 
-    if (state.debugEnabled) {
-      drawDebugInfo(col, row);
-    }
-  });
+  if (state.debugEnabled) {
+    drawDebugInfo(col, row);  // ✅ Moved outside else to ensure it's always drawn
+  }
+});
 
   document.getElementById('selectUnitBtn')?.addEventListener('click', () => {
     const state = getState();
