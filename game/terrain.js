@@ -1,5 +1,6 @@
 // File: game/terrain.js
 
+// Movement cost per terrain type
 const terrainMovementCosts = {
   grassland: 1,
   forest: 2,
@@ -8,21 +9,25 @@ const terrainMovementCosts = {
   water: Infinity
 };
 
-export function getMovementCost(terrainType) {
-  return terrainMovementCosts[terrainType] ?? 1;
+// Returns the movement cost of a tile, or of a terrain type
+export function getMovementCost(terrainOrTile) {
+  const type = typeof terrainOrTile === 'string' ? terrainOrTile : terrainOrTile?.terrain || terrainOrTile?.type;
+  return terrainMovementCosts[type] ?? 1;
 }
 
-export function isPassable(terrainType) {
-  return getMovementCost(terrainType) !== Infinity;
+// Returns true if the tile or terrain type is passable
+export function isPassable(terrainOrTile) {
+  return getMovementCost(terrainOrTile) !== Infinity;
 }
 
+// Returns true if the tile is not passable or is missing
 export function isTileBlocked(x, y, map) {
   const tile = map?.[y]?.[x];
   if (!tile) return true;
-  return !isPassable(tile.terrain);
+  return !isPassable(tile);
 }
 
-// ✅ NEW: mark dangerous tiles (fire, mine, etc)
+// Returns true if the tile is dangerous (e.g. fire, landmine)
 export function isDangerousTile(tile) {
-  return tile.effect === 'fire' || tile.effect === 'mine';
+  return tile?.effect === 'fire' || tile?.effect === 'mine';
 }
