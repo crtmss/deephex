@@ -128,7 +128,7 @@ export function drawDebugInfo(col, row) {
   if (!tile) return;
 
   const hexSize = 16;
-  const { x, y } = hexToPixel(col, row, hexSize);  // ✅ Correct pixel center
+  const { x, y } = hexToPixel(col, row, hexSize);
 
   let debugText = `(${col},${row}) ${tile.type}`;
   const unit = state.units.find(u => u.x === col && u.y === row);
