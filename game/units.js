@@ -1,3 +1,5 @@
+// File: game/units.js
+
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
