@@ -3,10 +3,10 @@
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
-  showPathCost,
   drawMap,
   setHoveredHex,
-  drawDebugInfo
+  drawDebugInfo,
+  setCurrentPath
 } from './ui.js';
 import { calculatePath, calculateMovementCost } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
@@ -124,12 +124,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (unit && state.currentTurn === state.playerId) {
       const path = calculatePath(unit.x, unit.y, col, row, state.map);
       if (path && path.length > 0) {
-        const cost = calculateMovementCost(path, state.map);
-        showPathCost(path, cost);
+        setCurrentPath(path);
       } else {
-        drawMap();
-      }
-    }
+        setCurrentPath([]);
+  }
+}
 
     if (state.debugEnabled) {
       drawDebugInfo(col, row);
