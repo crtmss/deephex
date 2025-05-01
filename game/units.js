@@ -127,8 +127,8 @@ document.addEventListener('DOMContentLoaded', () => {
         setCurrentPath(path);
       } else {
         setCurrentPath([]);
-  }
-}
+      }
+    }
 
     if (state.debugEnabled) {
       drawDebugInfo(col, row);
