@@ -123,8 +123,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const unit = state.units.find(u => u.id === state.selectedUnitId);
     if (unit && state.currentTurn === state.playerId) {
       const path = calculatePath(unit.x, unit.y, col, row, state.map);
-      if (path && path.length > 0) {
+      if (path?.length > 0) {
         setCurrentPath(path);
+        if (state.debugEnabled) {
+          const coords = path.map(p => `(${p.x},${p.y})`).join(', ');
+          console.log(`🧭 Path: ${coords}`);
+        }
       } else {
         setCurrentPath([]);
       }
