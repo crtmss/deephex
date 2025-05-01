@@ -123,11 +123,12 @@ export function drawDebugInfo(col, row) {
 
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
+
   const tile = state.map?.[row]?.[col];
   if (!tile) return;
 
   const hexSize = 16;
-  const { x, y } = hexToPixel(col, row, hexSize);
+  const { x, y } = hexToPixel(col, row, hexSize);  // ✅ Correct pixel center
 
   let debugText = `(${col},${row}) ${tile.type}`;
   const unit = state.units.find(u => u.x === col && u.y === row);
