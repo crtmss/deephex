@@ -1,3 +1,5 @@
+// File: game/ui.js
+
 import { drawTerrain, drawUnit } from './draw.js';
 import { getState, setState } from './game-state.js';
 
