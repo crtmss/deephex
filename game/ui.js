@@ -29,13 +29,8 @@ export function drawMap() {
     }
   }
 
-  // ✅ Highlight hovered hex
   if (hoveredHex) drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
-
-  // ✅ Draw current path if any
-  if (currentPath.length > 0) {
-    drawPath(ctx, currentPath, hexSize);
-  }
+  if (currentPath.length > 0) drawPath(ctx, currentPath, hexSize);
 
   state.units.forEach((unit) => {
     drawUnit(ctx, unit, hexSize);
@@ -123,7 +118,6 @@ export function drawDebugInfo(col, row) {
 
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-
   const tile = state.map?.[row]?.[col];
   if (!tile) return;
 
