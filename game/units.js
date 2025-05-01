@@ -8,9 +8,11 @@ import {
   drawDebugInfo,
   setCurrentPath
 } from './ui.js';
-import { calculatePath, calculateMovementCost } from './pathfinding.js';
+import { calculatePath } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
 import { pushStateToSupabase } from '../lib/supabase.js';
+
+let selectedHex = null;
 
 function performAction(unitId, targetX, targetY) {
   const state = getState();
@@ -90,27 +92,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = getState();
     if (!state.map?.[row]?.[col]) return;
 
-    const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
-
-    if (selectedUnit && state.currentTurn === state.playerId) {
-      const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
-      if (!path) return;
-      const cost = calculateMovementCost(path, state.map);
-
-      if (path.length > 0 && selectedUnit.mp >= cost) {
-        selectedUnit.mp -= cost;
-        animateMovement(selectedUnit, path, async () => {
-          await pushStateToSupabase();
-          updateGameUI();
-        });
-      }
-    } else {
-      const clickedUnit = state.units.find(u => u.x === col && u.y === row && u.owner === state.playerId);
-      if (clickedUnit) {
-        setState({ ...state, selectedUnitId: clickedUnit.id });
-        updateGameUI();
-      }
-    }
+    selectedHex = { col, row };
+    setHoveredHex(col, row); // persistent highlight
   });
 
   canvas.addEventListener('mousemove', (e) => {
@@ -118,16 +101,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = getState();
     if (!state.map?.[row]?.[col]) return;
 
-    setHoveredHex(col, row);
-
     const unit = state.units.find(u => u.id === state.selectedUnitId);
     if (unit && state.currentTurn === state.playerId) {
       const path = calculatePath(unit.x, unit.y, col, row, state.map);
-      if (path?.length > 0) {
+      if (path && path.length > 0) {
         setCurrentPath(path);
         if (state.debugEnabled) {
-          const coords = path.map(p => `(${p.x},${p.y})`).join(', ');
-          console.log(`🧭 Path: ${coords}`);
+          const pathCoords = path.map(p => `(${p.x},${p.y})`).join(', ');
+          console.log(`[Path] ${pathCoords}`);
         }
       } else {
         setCurrentPath([]);
@@ -151,6 +132,24 @@ document.addEventListener('DOMContentLoaded', () => {
       alert('It is not your turn.');
     }
   });
+
+  // ✅ New move-to-hex button logic
+  document.getElementById('moveToHexBtn')?.addEventListener('click', () => {
+    const state = getState();
+    if (!selectedHex) return;
+
+    const unit = state.units.find(u => u.id === state.selectedUnitId && u.owner === state.playerId);
+    if (!unit) return;
+
+    const path = calculatePath(unit.x, unit.y, selectedHex.col, selectedHex.row, state.map);
+    if (path && path.length > 1) {
+      animateMovement(unit, [path[0]], async () => {
+        await pushStateToSupabase();
+        updateGameUI();
+      });
+    }
+  });
 });
 
 export { performAction, endTurn };
+
