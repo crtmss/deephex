@@ -1,4 +1,4 @@
-//File: game/terrain.js
+// File: game/terrain.js
 
 const terrainMovementCosts = {
   grassland: 1,
