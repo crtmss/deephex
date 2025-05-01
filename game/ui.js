@@ -4,6 +4,7 @@ import { drawTerrain, drawUnit } from './draw.js';
 import { getState, setState } from './game-state.js';
 
 let hoveredHex = null;
+let currentPath = [];
 
 export function updateTurnDisplay(turn) {
   const turnInfo = document.getElementById('turn-display');
@@ -28,40 +29,41 @@ export function drawMap() {
     }
   }
 
-  if (hoveredHex) {
-    drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
-  }
+  // ✅ Highlight hovered hex
+  if (hoveredHex) drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
 
-  state.units.forEach(unit => drawUnit(ctx, unit, hexSize));
+  // ✅ Draw path overlay
+  drawPathOverlay(ctx, currentPath, hexSize);
+
+  state.units.forEach((unit) => {
+    drawUnit(ctx, unit, hexSize);
+  });
 }
 
-export function showPathCost(path, cost) {
+export function setHoveredHex(col, row) {
+  hoveredHex = { col, row };
   drawMap();
+}
 
-  const canvas = document.getElementById('gameCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
+export function setCurrentPath(path) {
+  currentPath = path;
+  drawMap();
+}
 
-  const hexSize = 16;
-  ctx.strokeStyle = 'rgba(255, 255, 0, 0.7)';
-  ctx.lineWidth = 2;
+function drawPathOverlay(ctx, path, size) {
+  if (!path?.length) return;
+
   ctx.beginPath();
+  ctx.strokeStyle = 'rgba(255, 255, 0, 0.6)';
+  ctx.lineWidth = 2;
 
-  for (let i = 0; i < path.length; i++) {
-    const { x, y } = path[i];
-    const { x: px, y: py } = hexToPixel(x, y, hexSize);
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
-  }
+  path.forEach((tile, index) => {
+    const { x, y } = hexToPixel(tile.x, tile.y, size);
+    if (index === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
+  });
+
   ctx.stroke();
-
-  if (path.length > 0) {
-    const last = path[path.length - 1];
-    const { x, y } = hexToPixel(last.x, last.y, hexSize);
-    ctx.fillStyle = 'yellow';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText(`Cost: ${cost}`, x - 20, y - 10);
-  }
 }
 
 function hexToPixel(col, row, size) {
@@ -96,11 +98,6 @@ function drawHoveredHex(ctx, col, row, size) {
   ctx.stroke();
 }
 
-export function setHoveredHex(col, row) {
-  hoveredHex = { col, row };
-  drawMap();
-}
-
 export function updateGameUI() {
   const state = getState();
   drawMap();
@@ -120,6 +117,7 @@ export function drawDebugInfo(col, row) {
   const { x, y } = hexToPixel(col, row, hexSize);
 
   let debugText = `(${col},${row}) ${tile.type}`;
+  if (tile.effect) debugText += ` [${tile.effect}]`;
   const unit = state.units.find(u => u.x === col && u.y === row);
   if (unit) debugText += ` | ${unit.owner}`;
 
@@ -134,3 +132,4 @@ export function toggleDebugMode() {
   setState({ ...state, debugEnabled: enabled });
   console.log(enabled ? '✅ Entered debug mode' : '❌ Exited debug mode');
 }
+
