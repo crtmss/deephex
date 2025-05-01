@@ -1,5 +1,3 @@
-// File: game/units.js
-
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
@@ -8,7 +6,7 @@ import {
   drawDebugInfo,
   setCurrentPath
 } from './ui.js';
-import { calculatePath } from './pathfinding.js';
+import { calculatePath, calculateMovementCost } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
 import { pushStateToSupabase } from '../lib/supabase.js';
 
@@ -23,7 +21,7 @@ function performAction(unitId, targetX, targetY) {
   const dy = targetY - unit.y;
   const distance = Math.sqrt(dx * dx + dy * dy);
 
-  if (distance <= 3 && !isTileBlocked(targetX, targetY)) {
+  if (distance <= 3 && !isTileBlocked(targetX, targetY, state.map)) {
     unit.ap -= 1;
     const targetUnit = state.units.find(u => u.x === targetX && u.y === targetY);
     if (targetUnit) {
@@ -50,19 +48,6 @@ function endTurn() {
   setState(state);
   pushStateToSupabase();
   updateGameUI();
-}
-
-function animateMovement(unit, path, callback) {
-  if (path.length === 0) {
-    callback();
-    return;
-  }
-  const [nextStep, ...rest] = path;
-  unit.x = nextStep.x;
-  unit.y = nextStep.y;
-  setState(getState());
-  updateGameUI();
-  setTimeout(() => animateMovement(unit, rest, callback), 100);
 }
 
 function getHexAtMouse(e, canvas) {
@@ -92,8 +77,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = getState();
     if (!state.map?.[row]?.[col]) return;
 
-    selectedHex = { col, row };
-    setHoveredHex(col, row); // persistent highlight
+    const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
+
+    if (selectedUnit && state.currentTurn === state.playerId) {
+      selectedHex = { col, row };
+      setHoveredHex(col, row);
+    } else {
+      const clickedUnit = state.units.find(u => u.x === col && u.y === row && u.owner === state.playerId);
+      if (clickedUnit) {
+        setState({ ...state, selectedUnitId: clickedUnit.id });
+        updateGameUI();
+      }
+    }
   });
 
   canvas.addEventListener('mousemove', (e) => {
@@ -101,14 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = getState();
     if (!state.map?.[row]?.[col]) return;
 
+    setHoveredHex(col, row);
+
     const unit = state.units.find(u => u.id === state.selectedUnitId);
     if (unit && state.currentTurn === state.playerId) {
       const path = calculatePath(unit.x, unit.y, col, row, state.map);
       if (path && path.length > 0) {
         setCurrentPath(path);
         if (state.debugEnabled) {
-          const pathCoords = path.map(p => `(${p.x},${p.y})`).join(', ');
-          console.log(`[Path] ${pathCoords}`);
+          const pathCoords = path.map(tile => `(${tile.x},${tile.y})`).join(', ');
+          console.log('🧭 Path:', pathCoords);
         }
       } else {
         setCurrentPath([]);
@@ -133,23 +130,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ✅ New move-to-hex button logic
   document.getElementById('moveToHexBtn')?.addEventListener('click', () => {
     const state = getState();
-    if (!selectedHex) return;
+    if (!selectedHex) {
+      console.warn('❌ No hex selected.');
+      return;
+    }
 
     const unit = state.units.find(u => u.id === state.selectedUnitId && u.owner === state.playerId);
-    if (!unit) return;
+    if (!unit) {
+      console.warn('❌ No selected unit.');
+      return;
+    }
 
     const path = calculatePath(unit.x, unit.y, selectedHex.col, selectedHex.row, state.map);
-    if (path && path.length > 1) {
-      animateMovement(unit, [path[0]], async () => {
-        await pushStateToSupabase();
-        updateGameUI();
-      });
+    if (!path || path.length < 2) {
+      console.warn('⚠️ No path or already at destination.');
+      return;
     }
+
+    const nextStep = path[1]; // first step after current
+    console.log(`➡️ Moving unit one step to (${nextStep.x},${nextStep.y})`);
+
+    unit.x = nextStep.x;
+    unit.y = nextStep.y;
+    setState(state);
+    pushStateToSupabase();
+    updateGameUI();
   });
 });
 
 export { performAction, endTurn };
-
