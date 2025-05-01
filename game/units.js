@@ -1,5 +1,3 @@
-// File: game/units.js
-
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
@@ -125,6 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const path = calculatePath(unit.x, unit.y, col, row, state.map);
       if (path && path.length > 0) {
         setCurrentPath(path);
+
+        if (state.debugEnabled) {
+          const coordString = path.map(p => `(hex ${p.x},${p.y})`).join(', ');
+          console.log('🧭 Path debug:', coordString);
+        }
       } else {
         setCurrentPath([]);
       }
