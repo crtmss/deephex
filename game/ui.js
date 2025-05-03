@@ -5,6 +5,7 @@ import { getState, setState } from './game-state.js';
 
 let hoveredHex = null;
 let currentPath = [];
+let selectedHex = null; // ✅ persist selected hex
 
 export function updateTurnDisplay(turn) {
   const turnInfo = document.getElementById('turn-display');
@@ -29,16 +30,28 @@ export function drawMap() {
     }
   }
 
-  if (hoveredHex) drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
+  if (selectedHex) drawHoveredHex(ctx, selectedHex.col, selectedHex.row, hexSize); // ✅ persistent
+  else if (hoveredHex) drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize); // hover fallback
+
   if (currentPath.length > 0) drawPath(ctx, currentPath, hexSize);
 
-  state.units.forEach((unit) => {
-    drawUnit(ctx, unit, hexSize);
-  });
+  state.units.forEach((unit) => drawUnit(ctx, unit, hexSize));
 }
 
 export function setHoveredHex(col, row) {
-  hoveredHex = { col, row };
+  if (!selectedHex) {
+    hoveredHex = { col, row };
+    drawMap();
+  }
+}
+
+export function setSelectedHex(col, row) {
+  selectedHex = { col, row };
+  drawMap();
+}
+
+export function clearSelectedHex() {
+  selectedHex = null;
   drawMap();
 }
 
