@@ -5,7 +5,6 @@ import { getState, setState } from './game-state.js';
 
 let hoveredHex = null;
 let currentPath = [];
-let selectedHex = null; // ✅ persist selected hex
 
 export function updateTurnDisplay(turn) {
   const turnInfo = document.getElementById('turn-display');
@@ -30,28 +29,28 @@ export function drawMap() {
     }
   }
 
-  if (selectedHex) drawHoveredHex(ctx, selectedHex.col, selectedHex.row, hexSize); // ✅ persistent
-  else if (hoveredHex) drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize); // hover fallback
+  // ✅ Draw selected hex (persistent highlight)
+  if (state.selectedHex) {
+    drawSelectedHex(ctx, state.selectedHex.col, state.selectedHex.row, hexSize);
+  }
 
-  if (currentPath.length > 0) drawPath(ctx, currentPath, hexSize);
+  // ✅ Draw hovered hex (only when not selecting)
+  if (hoveredHex && !state.selectedHex) {
+    drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
+  }
 
-  state.units.forEach((unit) => drawUnit(ctx, unit, hexSize));
+  // ✅ Draw movement path
+  if (currentPath.length > 0) {
+    drawPath(ctx, currentPath, hexSize);
+  }
+
+  state.units.forEach((unit) => {
+    drawUnit(ctx, unit, hexSize);
+  });
 }
 
 export function setHoveredHex(col, row) {
-  if (!selectedHex) {
-    hoveredHex = { col, row };
-    drawMap();
-  }
-}
-
-export function setSelectedHex(col, row) {
-  selectedHex = { col, row };
-  drawMap();
-}
-
-export function clearSelectedHex() {
-  selectedHex = null;
+  hoveredHex = { col, row };
   drawMap();
 }
 
@@ -92,12 +91,7 @@ function drawPath(ctx, path, hexSize) {
 
 function drawHoveredHex(ctx, col, row, size) {
   const { x, y } = hexToPixel(col, row, size);
-  const corners = [];
-  for (let i = 0; i < 6; i++) {
-    const angle = Math.PI / 180 * (60 * i - 30);
-    corners.push({ x: x + size * Math.cos(angle), y: y + size * Math.sin(angle) });
-  }
-
+  const corners = getHexCorners(x, y, size);
   ctx.beginPath();
   ctx.moveTo(corners[0].x, corners[0].y);
   for (let i = 1; i < corners.length; i++) {
@@ -107,6 +101,32 @@ function drawHoveredHex(ctx, col, row, size) {
   ctx.strokeStyle = '#ffcc00';
   ctx.lineWidth = 2;
   ctx.stroke();
+}
+
+function drawSelectedHex(ctx, col, row, size) {
+  const { x, y } = hexToPixel(col, row, size);
+  const corners = getHexCorners(x, y, size);
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < corners.length; i++) {
+    ctx.lineTo(corners[i].x, corners[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = 'orange';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function getHexCorners(cx, cy, size) {
+  const corners = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.PI / 180 * (60 * i - 30);
+    corners.push({
+      x: cx + size * Math.cos(angle),
+      y: cy + size * Math.sin(angle)
+    });
+  }
+  return corners;
 }
 
 function hexToPixel(col, row, size) {
@@ -136,7 +156,6 @@ export function drawDebugInfo(col, row) {
 
   const hexSize = 16;
   const { x, y } = hexToPixel(col, row, hexSize);
-
   let debugText = `(${col},${row}) ${tile.type}`;
   const unit = state.units.find(u => u.x === col && u.y === row);
   if (unit) debugText += ` | ${unit.owner}`;
