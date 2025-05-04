@@ -1,3 +1,4 @@
+<!-- File: game.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -31,24 +32,6 @@
     import { drawMap, updateTurnDisplay, updateGameUI, drawDebugInfo, toggleDebugMode } from './game/ui.js';
     import { endTurn, performAction } from './game/units.js';
     import { pushStateToSupabase } from './lib/supabase.js';
-
-    function hexAtMouse(e, canvas, size = 16) {
-      const SQRT3 = Math.sqrt(3);
-      const rect = canvas.getBoundingClientRect();
-      const mx = e.clientX - rect.left;
-      const my = e.clientY - rect.top;
-
-      const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
-      const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
-
-      const px = mx - offsetX;
-      const py = my - offsetY;
-
-      const row = Math.floor(py / (size * 1.5)) - 1;
-      const col = Math.floor((px / (size * SQRT3)) - 0.5 * (row % 2));
-
-      return { col, row };
-    }
 
     async function listenToGameRoomUpdates(roomId) {
       const channel = supabase.channel(`game-${roomId}`);
@@ -86,7 +69,17 @@
       });
 
       canvas.addEventListener('mousemove', (e) => {
-        const { col, row } = hexAtMouse(e, canvas);
+        const SQRT3 = Math.sqrt(3);
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const size = 16;
+        const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+        const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+        const px = mx - offsetX;
+        const py = my - offsetY;
+        const row = Math.floor(py / (size * 1.5)) - 1;
+        const col = Math.floor((px / (size * SQRT3)) - 0.5 * (row % 2));
         drawMap();
         drawDebugInfo(col, row);
       });
@@ -123,7 +116,9 @@
         units: data.units,
         currentTurn: data.turn,
         player2Seen: data.player_2,
-        debugEnabled: false
+        debugEnabled: false,
+        selectedHex: null,         // ✅ Ensure selection works
+        selectedUnitId: null       // ✅ Also good to reset selected unit
       });
 
       drawMap();
@@ -154,27 +149,31 @@
         }
       });
 
-      document.getElementById('moveRightBtn')?.addEventListener('click', () => {
-        const state = getState();
-        const unit = state.units.find(u => u.id === state.selectedUnitId && u.owner === state.playerId);
-        if (!unit) {
-          console.warn("⚠️ No unit selected or not your turn.");
+      document.getElementById('moveToHexBtn')?.addEventListener('click', () => {
+        const s = getState();
+        const unit = s.units.find(u => u.id === s.selectedUnitId && u.owner === s.playerId);
+        const dest = s.selectedHex;
+        if (!unit || !dest) {
+          console.warn("❌ No unit or destination selected.");
           return;
         }
 
-        const targetX = unit.x + 1;
-        const targetY = unit.y;
-        const targetTile = state.map?.[targetY]?.[targetX];
-        if (!targetTile || targetTile.movementCost === Infinity) {
-          console.warn("🚫 Target tile is invalid or impassable.");
+        const dx = Math.sign(dest.col - unit.x);
+        const dy = Math.sign(dest.row - unit.y);
+        const targetX = unit.x + dx;
+        const targetY = unit.y + dy;
+
+        const tile = s.map?.[targetY]?.[targetX];
+        if (!tile || tile.movementCost === Infinity) {
+          console.warn("🚫 Can't move to selected tile.");
           return;
         }
 
         unit.x = targetX;
         unit.y = targetY;
-        setState(state);
+        setState(s);
         pushStateToSupabase().then(() => {
-          console.log(`✅ Moved unit ${unit.id} to (${unit.x}, ${unit.y})`);
+          console.log(`✅ Moved unit to (${unit.x}, ${unit.y})`);
           updateGameUI();
         });
       });
