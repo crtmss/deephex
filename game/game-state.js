@@ -11,7 +11,8 @@ let state = {
   roomId: null,
   hasRendered: false,
   player2Seen: false,
-  selectedUnitId: null // ✅ Keep track of selected unit
+  selectedUnitId: null, // ✅ Track selected unit
+  selectedHex: null     // ✅ Track selected hex for movement
 };
 
 export function setState(newState) {
