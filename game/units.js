@@ -81,6 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectedUnit && state.currentTurn === state.playerId) {
       state.selectedHex = { col, row };
       console.log(`✅ Hex selected at (${col}, ${row})`);
+      setHoveredHex(null); // ✅ Clear hover on selection
       setState(state);
       updateGameUI();
     } else {
@@ -97,7 +98,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const state = getState();
     if (!state.map?.[row]?.[col]) return;
 
-    // ✅ only update hover when no hex is selected
     if (!state.selectedHex) {
       setHoveredHex(col, row);
     }
