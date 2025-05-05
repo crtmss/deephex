@@ -1,7 +1,7 @@
 // File: game/ui.js
 
 import { drawTerrain, drawUnit } from './draw.js';
-import { getState, setState } from './game-state.js';
+import { getState } from './game-state.js';
 
 let hoveredHex = null;
 let currentPath = [];
@@ -48,7 +48,6 @@ export function drawMap() {
 
 export function setHoveredHex(col, row) {
   hoveredHex = col !== null && row !== null ? { col, row } : null;
-  drawMap();
 }
 
 export function setCurrentPath(path) {
@@ -59,9 +58,6 @@ export function setCurrentPath(path) {
     const debugCoords = path.map(p => `(hex ${p.x},${p.y})`).join(', ');
     console.log(`[Path] Highlighted path: ${debugCoords}`);
   }
-
-  // ⚠️ Don't call drawMap() if setCurrentPath is called from drawMap
-  drawMap();
 }
 
 function drawPath(ctx, path, hexSize) {
@@ -138,9 +134,8 @@ function hexToPixel(col, row, size) {
 }
 
 export function updateGameUI() {
-  const state = getState();
   drawMap();
-  updateTurnDisplay(state.currentTurn);
+  updateTurnDisplay(getState().currentTurn);
 }
 
 export function drawDebugInfo(col, row) {
