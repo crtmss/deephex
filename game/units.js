@@ -1,3 +1,5 @@
+// File: game/units.js
+
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
@@ -6,7 +8,7 @@ import {
   drawDebugInfo,
   setCurrentPath
 } from './ui.js';
-import { calculatePath, calculateMovementCost } from './pathfinding.js';
+import { calculatePath } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
 import { pushStateToSupabase } from '../lib/supabase.js';
 
@@ -43,7 +45,7 @@ function endTurn() {
       unit.ap = 1;
     }
   });
-  state.selectedHex = null; // clear selection on turn end
+  state.selectedHex = null;
   setState(state);
   pushStateToSupabase();
   updateGameUI();
@@ -81,8 +83,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectedUnit && state.currentTurn === state.playerId) {
       state.selectedHex = { col, row };
       console.log(`✅ Hex selected at (${col}, ${row})`);
-      setHoveredHex(null); // ✅ Clear hover on selection
+      setHoveredHex(null);
       setState(state);
+
+      // ✅ Update path to selected hex
+      const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
+      if (path) setCurrentPath(path);
+
       updateGameUI();
     } else {
       const clickedUnit = state.units.find(u => u.x === col && u.y === row && u.owner === state.playerId);
@@ -100,20 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!state.selectedHex) {
       setHoveredHex(col, row);
-    }
-
-    const unit = state.units.find(u => u.id === state.selectedUnitId);
-    if (unit && state.currentTurn === state.playerId) {
-      const path = calculatePath(unit.x, unit.y, col, row, state.map);
-      if (path && path.length > 0) {
-        setCurrentPath(path);
-        if (state.debugEnabled) {
-          const pathCoords = path.map(tile => `(${tile.x},${tile.y})`).join(', ');
-          console.log('🧭 Path:', pathCoords);
-        }
-      } else {
-        setCurrentPath([]);
-      }
     }
 
     if (state.debugEnabled) {
