@@ -1,3 +1,5 @@
+// File: game/ui.js
+
 import { drawTerrain, drawUnit } from './draw.js';
 import { getState } from './game-state.js';
 
@@ -20,6 +22,8 @@ export function drawMap() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const hexSize = 16;
+
+  // Draw terrain
   for (let y = 0; y < state.map.length; y++) {
     for (let x = 0; x < state.map[y].length; x++) {
       const tile = state.map[y][x];
@@ -27,18 +31,22 @@ export function drawMap() {
     }
   }
 
+  // Draw selected hex
   if (state.selectedHex) {
     drawSelectedHex(ctx, state.selectedHex.col, state.selectedHex.row, hexSize);
   }
 
+  // Draw hovered hex
   if (hoveredHex && !state.selectedHex) {
     drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
   }
 
+  // 🔥 Draw path
   if (currentPath.length > 0) {
     drawPath(ctx, currentPath, hexSize);
   }
 
+  // Draw units
   state.units.forEach((unit) => {
     drawUnit(ctx, unit, hexSize);
   });
@@ -46,16 +54,18 @@ export function drawMap() {
 
 export function setHoveredHex(col, row) {
   hoveredHex = col !== null && row !== null ? { col, row } : null;
-  drawMap(); // force redraw on hover change
 }
 
 export function setCurrentPath(path) {
   currentPath = path;
-  if (getState().debugEnabled && path.length > 0) {
-    const coords = path.map(p => `(${p.x},${p.y})`).join(', ');
-    console.log(`[Path] Highlighted path: ${coords}`);
+
+  const state = getState();
+  if (state.debugEnabled && path.length > 0) {
+    const debugCoords = path.map(p => `(hex ${p.x},${p.y})`).join(', ');
+    console.log(`[Path] Highlighted path: ${debugCoords}`);
   }
-  drawMap(); // force path rendering
+
+  drawMap(); // ✅ Force re-render to show the path
 }
 
 function drawPath(ctx, path, hexSize) {
@@ -83,24 +93,29 @@ function drawPath(ctx, path, hexSize) {
 
 function drawHoveredHex(ctx, col, row, size) {
   const { x, y } = hexToPixel(col, row, size);
-  drawHexOutline(ctx, x, y, size, '#ffcc00', 2);
-}
-
-function drawSelectedHex(ctx, col, row, size) {
-  const { x, y } = hexToPixel(col, row, size);
-  drawHexOutline(ctx, x, y, size, 'orange', 3);
-}
-
-function drawHexOutline(ctx, cx, cy, size, color, width) {
-  const corners = getHexCorners(cx, cy, size);
+  const corners = getHexCorners(x, y, size);
   ctx.beginPath();
   ctx.moveTo(corners[0].x, corners[0].y);
   for (let i = 1; i < corners.length; i++) {
     ctx.lineTo(corners[i].x, corners[i].y);
   }
   ctx.closePath();
-  ctx.strokeStyle = color;
-  ctx.lineWidth = width;
+  ctx.strokeStyle = '#ffcc00';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawSelectedHex(ctx, col, row, size) {
+  const { x, y } = hexToPixel(col, row, size);
+  const corners = getHexCorners(x, y, size);
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < corners.length; i++) {
+    ctx.lineTo(corners[i].x, corners[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = 'orange';
+  ctx.lineWidth = 3;
   ctx.stroke();
 }
 
