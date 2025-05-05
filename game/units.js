@@ -3,7 +3,6 @@
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
-  drawMap,
   setHoveredHex,
   drawDebugInfo,
   setCurrentPath
@@ -46,6 +45,7 @@ function endTurn() {
     }
   });
   state.selectedHex = null;
+  setCurrentPath([]);
   setState(state);
   pushStateToSupabase();
   updateGameUI();
@@ -86,9 +86,12 @@ document.addEventListener('DOMContentLoaded', () => {
       setHoveredHex(null);
       setState(state);
 
-      // ✅ Update path to selected hex
       const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
-      if (path) setCurrentPath(path);
+      if (path) {
+        setCurrentPath(path);
+      } else {
+        setCurrentPath([]);
+      }
 
       updateGameUI();
     } else {
@@ -152,6 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     unit.x = nextStep.x;
     unit.y = nextStep.y;
+    setCurrentPath([]); // clear path after moving
     setState(state);
     pushStateToSupabase();
     updateGameUI();
