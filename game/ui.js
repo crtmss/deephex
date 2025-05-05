@@ -2,7 +2,6 @@
 
 import { drawTerrain, drawUnit } from './draw.js';
 import { getState, setState } from './game-state.js';
-import { calculatePath } from './pathfinding.js'; // ✅ NEW
 
 let hoveredHex = null;
 let currentPath = [];
@@ -28,13 +27,6 @@ export function drawMap() {
       const tile = state.map[y][x];
       drawTerrain(ctx, x, y, tile.type, hexSize);
     }
-  }
-
-  // ✅ Recalculate path to selected hex if applicable
-  const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
-  if (selectedUnit && state.selectedHex) {
-    const path = calculatePath(selectedUnit.x, selectedUnit.y, state.selectedHex.col, state.selectedHex.row, state.map);
-    setCurrentPath(path || []);
   }
 
   if (state.selectedHex) {
@@ -68,6 +60,7 @@ export function setCurrentPath(path) {
     console.log(`[Path] Highlighted path: ${debugCoords}`);
   }
 
+  // ⚠️ Don't call drawMap() if setCurrentPath is called from drawMap
   drawMap();
 }
 
