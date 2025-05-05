@@ -3,20 +3,20 @@
 import { isDangerousTile } from './terrain.js';
 
 function heuristic(a, b) {
-  return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
+  return Math.abs(a.q - b.q) + Math.abs(a.r - b.r);
 }
 
 function getNeighbors(map, node) {
   const directions = [
-    { dx: 1, dy: 0 }, { dx: 1, dy: -1 }, { dx: 0, dy: -1 },
-    { dx: -1, dy: 0 }, { dx: -1, dy: 1 }, { dx: 0, dy: 1 }
+    { dq: 1, dr: 0 }, { dq: 1, dr: -1 }, { dq: 0, dr: -1 },
+    { dq: -1, dr: 0 }, { dq: -1, dr: 1 }, { dq: 0, dr: 1 }
   ];
   const neighbors = [];
-  directions.forEach(({ dx, dy }) => {
-    const x = node.x + dx;
-    const y = node.y + dy;
-    if (map[y] && map[y][x]) {
-      neighbors.push(map[y][x]);
+  directions.forEach(({ dq, dr }) => {
+    const q = node.q + dq;
+    const r = node.r + dr;
+    if (map[r] && map[r][q]) {
+      neighbors.push(map[r][q]);
     }
   });
   return neighbors;
@@ -46,7 +46,7 @@ export function findPath(map, start, goal) {
     }
 
     getNeighbors(map, current).forEach((neighbor) => {
-      const key = `${neighbor.x},${neighbor.y}`;
+      const key = `${neighbor.q},${neighbor.r}`;
       if (visited.has(key) || isDangerousTile(neighbor)) return;
       visited.add(key);
 
@@ -68,13 +68,6 @@ export function findPath(map, start, goal) {
 export function calculatePath(startX, startY, targetX, targetY, map) {
   const start = map[startY]?.[startX];
   const goal = map[targetY]?.[targetX];
-  return findPath(map, start, goal);
+  const rawPath = findPath(map, start, goal);
+  return rawPath?.map(tile => ({ x: tile.q, y: tile.r })) ?? [];
 }
-
-export function calculateMovementCost(path, map) {
-  return path.reduce((total, tile) => {
-    const terrain = map[tile.y]?.[tile.x]?.terrain || 'grassland';
-    return total + (terrainMovementCosts[terrain] ?? 1);
-  }, 0);
-}
-
