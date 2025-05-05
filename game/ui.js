@@ -22,8 +22,6 @@ export function drawMap() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const hexSize = 16;
-
-  // Draw terrain
   for (let y = 0; y < state.map.length; y++) {
     for (let x = 0; x < state.map[y].length; x++) {
       const tile = state.map[y][x];
@@ -31,22 +29,18 @@ export function drawMap() {
     }
   }
 
-  // Draw selected hex
   if (state.selectedHex) {
     drawSelectedHex(ctx, state.selectedHex.col, state.selectedHex.row, hexSize);
   }
 
-  // Draw hovered hex
   if (hoveredHex && !state.selectedHex) {
     drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
   }
 
-  // 🔥 Draw path
   if (currentPath.length > 0) {
     drawPath(ctx, currentPath, hexSize);
   }
 
-  // Draw units
   state.units.forEach((unit) => {
     drawUnit(ctx, unit, hexSize);
   });
@@ -64,8 +58,6 @@ export function setCurrentPath(path) {
     const debugCoords = path.map(p => `(hex ${p.x},${p.y})`).join(', ');
     console.log(`[Path] Highlighted path: ${debugCoords}`);
   }
-
-  drawMap(); // ✅ Force re-render to show the path
 }
 
 function drawPath(ctx, path, hexSize) {
