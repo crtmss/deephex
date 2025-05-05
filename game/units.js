@@ -1,5 +1,3 @@
-// File: game/units.js
-
 import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
@@ -79,7 +77,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!state.map?.[row]?.[col]) return;
 
     const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
-
     if (selectedUnit && state.currentTurn === state.playerId) {
       state.selectedHex = { col, row };
       console.log(`✅ Hex selected at (${col}, ${row})`);
@@ -87,12 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
       setState(state);
 
       const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
-      if (path) {
-        setCurrentPath(path);
-      } else {
-        setCurrentPath([]);
-      }
-
+      setCurrentPath(path || []);
       updateGameUI();
     } else {
       const clickedUnit = state.units.find(u => u.x === col && u.y === row && u.owner === state.playerId);
@@ -155,7 +147,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     unit.x = nextStep.x;
     unit.y = nextStep.y;
-    setCurrentPath([]); // clear path after moving
+    setCurrentPath([]); // Clear path after move
     setState(state);
     pushStateToSupabase();
     updateGameUI();
