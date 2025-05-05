@@ -29,17 +29,14 @@ export function drawMap() {
     }
   }
 
-  // ✅ Draw selected hex (persistent highlight)
   if (state.selectedHex) {
     drawSelectedHex(ctx, state.selectedHex.col, state.selectedHex.row, hexSize);
   }
 
-  // ✅ Draw hovered hex (only when not selecting)
   if (hoveredHex && !state.selectedHex) {
     drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
   }
 
-  // ✅ Draw movement path
   if (currentPath.length > 0) {
     drawPath(ctx, currentPath, hexSize);
   }
