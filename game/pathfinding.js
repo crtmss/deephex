@@ -1,4 +1,5 @@
 // File: game/pathfinding.js
+
 import { isDangerousTile } from './terrain.js';
 
 function heuristic(a, b) {
