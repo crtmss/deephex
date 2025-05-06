@@ -29,6 +29,7 @@ export function drawMap() {
     }
   }
 
+  // ✅ Draw path before selected/hovered hex
   if (currentPath.length > 0) {
     drawPath(ctx, currentPath, hexSize);
   }
@@ -53,37 +54,22 @@ export function setHoveredHex(col, row) {
 
 export function setCurrentPath(path) {
   currentPath = path;
-
-  const state = getState();
-  if (state.debugEnabled && path.length > 0) {
-    const debugCoords = path.map(p => `(hex ${p.x},${p.y})`).join(', ');
-    console.log(`[Path] Highlighted path: ${debugCoords}`);
-  }
-
   drawMap();
 }
 
 function drawPath(ctx, path, hexSize) {
-  ctx.strokeStyle = 'rgba(255, 255, 0, 0.7)';
-  ctx.lineWidth = 2;
+  ctx.strokeStyle = 'yellow';
+  ctx.lineWidth = 3;
   ctx.beginPath();
 
   for (let i = 0; i < path.length; i++) {
     const { x, y } = path[i];
-    const { x: px, y: py } = hexToPixel(x, y, hexSize);
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
+    const pixel = hexToPixel(x, y, hexSize);
+    if (i === 0) ctx.moveTo(pixel.x, pixel.y);
+    else ctx.lineTo(pixel.x, pixel.y);
   }
 
   ctx.stroke();
-
-  if (path.length > 0) {
-    const last = path[path.length - 1];
-    const { x, y } = hexToPixel(last.x, last.y, hexSize);
-    ctx.fillStyle = 'yellow';
-    ctx.font = 'bold 14px sans-serif';
-    ctx.fillText(`Cost: ${path.length}`, x - 20, y - 10);
-  }
 }
 
 function drawHoveredHex(ctx, col, row, size) {
