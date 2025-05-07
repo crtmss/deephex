@@ -6,20 +6,30 @@ function heuristic(a, b) {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
 
+// Correct neighbor offsets for odd-q vertical layout
 function getNeighbors(map, node) {
-  const directions = [
-    { dx: 1, dy: 0 }, { dx: 1, dy: -1 }, { dx: 0, dy: -1 },
-    { dx: -1, dy: 0 }, { dx: -1, dy: 1 }, { dx: 0, dy: 1 }
+  const evenQOffsets = [
+    { dx: +1, dy:  0 }, { dx:  0, dy: -1 }, { dx: -1, dy: -1 },
+    { dx: -1, dy:  0 }, { dx: -1, dy: +1 }, { dx:  0, dy: +1 }
   ];
+
+  const oddQOffsets = [
+    { dx: +1, dy:  0 }, { dx: +1, dy: -1 }, { dx:  0, dy: -1 },
+    { dx: -1, dy:  0 }, { dx:  0, dy: +1 }, { dx: +1, dy: +1 }
+  ];
+
+  const offsets = node.x % 2 === 0 ? evenQOffsets : oddQOffsets;
   const neighbors = [];
-  directions.forEach(({ dx, dy }) => {
-    const x = node.x + dx;
-    const y = node.y + dy;
-    if (map[y] && map[y][x]) {
-      const tile = map[y][x];
-      neighbors.push({ ...tile, x, y });
+
+  for (const { dx, dy } of offsets) {
+    const nx = node.x + dx;
+    const ny = node.y + dy;
+    if (map[ny] && map[ny][nx]) {
+      const tile = map[ny][nx];
+      neighbors.push({ ...tile, x: nx, y: ny });
     }
-  });
+  }
+
   return neighbors;
 }
 
@@ -79,4 +89,11 @@ export function calculatePath(startX, startY, targetX, targetY, map) {
   const goal = map[targetY]?.[targetX];
   if (!start || !goal) return [];
   return findPath(map, start, goal);
+}
+
+export function calculateMovementCost(path, map) {
+  return path.reduce((total, tile) => {
+    const terrain = map[tile.y]?.[tile.x]?.terrain || 'grassland';
+    return total + (terrain.movementCost ?? 1);
+  }, 0);
 }
