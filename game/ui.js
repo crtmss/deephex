@@ -29,7 +29,6 @@ export function drawMap() {
     }
   }
 
-  // ✅ Draw path before selected/hovered hex
   if (currentPath.length > 0) {
     drawPath(ctx, currentPath, hexSize);
   }
@@ -153,3 +152,4 @@ export function toggleDebugMode() {
   setState({ ...state, debugEnabled: enabled });
   console.log(enabled ? '✅ Entered debug mode' : '❌ Exited debug mode');
 }
+
