@@ -7,17 +7,17 @@ function heuristic(a, b) {
 }
 
 function getNeighbors(map, node) {
-  const evenQOffsets = [
+  const evenQ = [
     { dx: +1, dy:  0 }, { dx:  0, dy: -1 }, { dx: -1, dy: -1 },
     { dx: -1, dy:  0 }, { dx: -1, dy: +1 }, { dx:  0, dy: +1 }
   ];
 
-  const oddQOffsets = [
+  const oddQ = [
     { dx: +1, dy:  0 }, { dx: +1, dy: -1 }, { dx:  0, dy: -1 },
     { dx: -1, dy:  0 }, { dx:  0, dy: +1 }, { dx: +1, dy: +1 }
   ];
 
-  const offsets = node.x % 2 === 0 ? evenQOffsets : oddQOffsets;
+  const offsets = node.x % 2 === 0 ? evenQ : oddQ;
   const neighbors = [];
 
   for (const { dx, dy } of offsets) {
@@ -38,14 +38,11 @@ export function findPath(map, start, goal) {
   const startNode = { ...start, x: start.q ?? start.x, y: start.r ?? start.y };
   const goalNode = { ...goal, x: goal.q ?? goal.x, y: goal.r ?? goal.y };
 
+  const key = (t) => `${t.x},${t.y}`;
   const openSet = [startNode];
   const cameFrom = new Map();
-  const gScore = new Map();
-  const fScore = new Map();
-
-  const key = (t) => `${t.x},${t.y}`;
-  gScore.set(key(startNode), 0);
-  fScore.set(key(startNode), heuristic(startNode, goalNode));
+  const gScore = new Map([[key(startNode), 0]]);
+  const fScore = new Map([[key(startNode), heuristic(startNode, goalNode)]]);
 
   while (openSet.length > 0) {
     openSet.sort((a, b) => fScore.get(key(a)) - fScore.get(key(b)));
@@ -54,13 +51,16 @@ export function findPath(map, start, goal) {
 
     if (current.x === goalNode.x && current.y === goalNode.y) {
       const path = [];
-      let curr = currentKey;
-      while (cameFrom.has(curr)) {
-        const node = cameFrom.get(curr);
-        path.unshift({ x: node.x, y: node.y });
-        curr = key(node);
+      let currKey = currentKey;
+      let currNode = current;
+
+      while (cameFrom.has(currKey)) {
+        path.unshift({ x: currNode.x, y: currNode.y });
+        currNode = cameFrom.get(currKey);
+        currKey = key(currNode);
       }
-      path.push({ x: current.x, y: current.y });
+
+      path.unshift({ x: startNode.x, y: startNode.y });
       return path;
     }
 
@@ -68,7 +68,7 @@ export function findPath(map, start, goal) {
       const neighborKey = key(neighbor);
       if (neighbor.movementCost === Infinity || isDangerousTile(neighbor)) continue;
 
-      const tentativeG = (gScore.get(currentKey) ?? Infinity) + neighbor.movementCost;
+      const tentativeG = gScore.get(currentKey) + neighbor.movementCost;
       if (tentativeG < (gScore.get(neighborKey) ?? Infinity)) {
         cameFrom.set(neighborKey, current);
         gScore.set(neighborKey, tentativeG);
@@ -92,8 +92,8 @@ export function calculatePath(startX, startY, targetX, targetY, map) {
 
 export function calculateMovementCost(path, map) {
   return path.reduce((total, tile) => {
-    const terrain = map[tile.y]?.[tile.x];
-    return total + (terrain?.movementCost ?? 1);
+    const terrain = map[tile.y]?.[tile.x]?.terrain || 'grassland';
+    return total + (terrain.movementCost ?? 1);
   }, 0);
 }
 
