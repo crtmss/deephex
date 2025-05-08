@@ -6,6 +6,7 @@ function heuristic(a, b) {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
 
+// Correct neighbor offsets for odd-q vertical layout
 function getNeighbors(map, node) {
   const evenQ = [
     { dx: +1, dy:  0 }, { dx:  0, dy: -1 }, { dx: -1, dy: -1 },
@@ -96,4 +97,3 @@ export function calculateMovementCost(path, map) {
     return total + (terrain.movementCost ?? 1);
   }, 0);
 }
-
