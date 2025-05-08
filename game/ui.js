@@ -153,3 +153,4 @@ export function toggleDebugMode() {
   console.log(enabled ? '✅ Entered debug mode' : '❌ Exited debug mode');
 }
 
+
