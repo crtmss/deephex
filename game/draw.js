@@ -6,14 +6,10 @@ import { getState } from './game-state.js';
 export function drawTerrain(ctx, col, row, terrainType, size) {
   const { x, y } = hexToPixel(col, row, size);
   const corners = getHexCorners(x, y, size);
-
   ctx.beginPath();
   ctx.moveTo(corners[0].x, corners[0].y);
-  for (let i = 1; i < 6; i++) {
-    ctx.lineTo(corners[i].x, corners[i].y);
-  }
+  for (let i = 1; i < 6; i++) ctx.lineTo(corners[i].x, corners[i].y);
   ctx.closePath();
-
   ctx.fillStyle = terrainColor(terrainType);
   ctx.fill();
   ctx.strokeStyle = "#444";
@@ -30,7 +26,6 @@ export function drawUnit(ctx, unit, size) {
   ctx.strokeStyle = "#000";
   ctx.lineWidth = 1;
   ctx.stroke();
-
   const selectedUnitId = getState().selectedUnitId;
   if (selectedUnitId && unit.id === selectedUnitId) {
     ctx.beginPath();
@@ -52,9 +47,9 @@ function terrainColor(type) {
 }
 
 function hexToPixel(col, row, size) {
+  const canvas = document.getElementById('gameCanvas');
   const x = size * SQRT3 * (col + 0.5 * (row % 2));
   const y = size * 1.5 * row;
-  const canvas = document.getElementById('gameCanvas');
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
