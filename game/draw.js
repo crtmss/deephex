@@ -1,5 +1,3 @@
-// File: game/draw.js
-
 const SQRT3 = Math.sqrt(3);
 import { getState } from './game-state.js';
 
