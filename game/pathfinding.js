@@ -1,5 +1,3 @@
-// File: game/pathfinding.js
-
 import { isDangerousTile } from './terrain.js';
 
 // ✅ Correct hex grid distance heuristic (cube distance)
