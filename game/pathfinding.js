@@ -2,11 +2,12 @@
 
 import { isDangerousTile } from './terrain.js';
 
-// ✅ Fixed: proper hex grid distance heuristic
+// ✅ Correct hex grid distance heuristic (cube distance)
 function heuristic(a, b) {
   const dx = a.x - b.x;
   const dy = a.y - b.y;
-  return (Math.abs(dx) + Math.abs(dx + dy) + Math.abs(dy)) / 2;
+  const dz = -dx - dy;
+  return Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz));
 }
 
 function getNeighbors(map, node) {
@@ -50,7 +51,7 @@ export function findPath(map, start, goal) {
   const openSet = [startNode];
   const cameFrom = new Map();
   const gScore = new Map([[key(startNode), 0]]);
-  const fScore = new Map([[key(startNode), heuristic(startNode, goalNode)]]); // ✅ fixed missing bracket
+  const fScore = new Map([[key(startNode), heuristic(startNode, goalNode)]]);
 
   while (openSet.length > 0) {
     openSet.sort((a, b) => fScore.get(key(a)) - fScore.get(key(b)));
