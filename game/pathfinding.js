@@ -6,27 +6,31 @@ function heuristic(a, b) {
   return Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 }
 
-// Correct neighbor offsets for odd-q vertical layout
 function getNeighbors(map, node) {
-  const evenQ = [
+  const col = node.x;
+  const row = node.y;
+
+  const evenOffsets = [
     { dx: +1, dy:  0 }, { dx:  0, dy: -1 }, { dx: -1, dy: -1 },
     { dx: -1, dy:  0 }, { dx: -1, dy: +1 }, { dx:  0, dy: +1 }
   ];
 
-  const oddQ = [
+  const oddOffsets = [
     { dx: +1, dy:  0 }, { dx: +1, dy: -1 }, { dx:  0, dy: -1 },
     { dx: -1, dy:  0 }, { dx:  0, dy: +1 }, { dx: +1, dy: +1 }
   ];
 
-  const offsets = node.x % 2 === 0 ? evenQ : oddQ;
+  const offsets = col % 2 === 0 ? evenOffsets : oddOffsets;
   const neighbors = [];
 
   for (const { dx, dy } of offsets) {
-    const nx = node.x + dx;
-    const ny = node.y + dy;
+    const nx = col + dx;
+    const ny = row + dy;
     if (map[ny] && map[ny][nx]) {
       const tile = map[ny][nx];
-      neighbors.push({ ...tile, x: nx, y: ny });
+      if (tile.movementCost !== Infinity && !tile.impassable && !isDangerousTile(tile)) {
+        neighbors.push({ ...tile, x: nx, y: ny });
+      }
     }
   }
 
@@ -43,7 +47,7 @@ export function findPath(map, start, goal) {
   const openSet = [startNode];
   const cameFrom = new Map();
   const gScore = new Map([[key(startNode), 0]]);
-  const fScore = new Map([[key(startNode), heuristic(startNode, goalNode)]]);
+  const fScore = new Map([[key(startNode), heuristic(startNode, goalNode)]);
 
   while (openSet.length > 0) {
     openSet.sort((a, b) => fScore.get(key(a)) - fScore.get(key(b)));
@@ -54,21 +58,17 @@ export function findPath(map, start, goal) {
       const path = [];
       let currKey = currentKey;
       let currNode = current;
-
       while (cameFrom.has(currKey)) {
         path.unshift({ x: currNode.x, y: currNode.y });
         currNode = cameFrom.get(currKey);
         currKey = key(currNode);
       }
-
       path.unshift({ x: startNode.x, y: startNode.y });
       return path;
     }
 
     for (const neighbor of getNeighbors(map, current)) {
       const neighborKey = key(neighbor);
-      if (neighbor.movementCost === Infinity || isDangerousTile(neighbor)) continue;
-
       const tentativeG = gScore.get(currentKey) + neighbor.movementCost;
       if (tentativeG < (gScore.get(neighborKey) ?? Infinity)) {
         cameFrom.set(neighborKey, current);
@@ -93,7 +93,7 @@ export function calculatePath(startX, startY, targetX, targetY, map) {
 
 export function calculateMovementCost(path, map) {
   return path.reduce((total, tile) => {
-    const terrain = map[tile.y]?.[tile.x]?.terrain || 'grassland';
-    return total + (terrain.movementCost ?? 1);
+    const terrain = map[tile.y]?.[tile.x];
+    return total + (terrain?.movementCost ?? 1);
   }, 0);
 }
