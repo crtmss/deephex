@@ -1,4 +1,4 @@
-// game/map.js
+// File: game/map.js
 
 export const terrainTypes = {
   grassland: { movementCost: 1, color: '#34a853' },
@@ -30,13 +30,11 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
     }))
   );
 
-  // Place water border (1-2 hex thick)
   for (let r = 0; r < rows; r++) {
     for (let q = 0; q < cols; q++) {
       if (r < 2 || r >= rows - 2 || q < 2 || q >= cols - 2) {
-        map[r][q].type = 'water';
-        map[r][q].movementCost = terrainTypes.water.movementCost;
-        map[r][q].impassable = true;
+        const tile = map[r][q];
+        Object.assign(tile, { type: 'water', ...terrainTypes.water });
       }
     }
   }
@@ -69,9 +67,7 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
         const [x, y] = queue.shift();
         const t = map[y][x];
         if (t.type === 'grassland') {
-          t.type = type;
-          t.movementCost = terrainTypes[type].movementCost;
-          t.impassable = terrainTypes[type].impassable || false;
+          Object.assign(t, { type, ...terrainTypes[type] });
           placed++;
           count++;
         }
@@ -86,26 +82,23 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
     }
   }
 
-  // Place regular biomes
   placeBiome('mud', 30);
   placeBiome('sand', 30);
 
-  // ✅ Place mountains in chains, avoiding spawn zones
-  const mountainChains = 6 + Math.floor(rand() * 3); // 6 to 8 chains
+  const mountainChains = 6 + Math.floor(rand() * 3);
   for (let i = 0; i < mountainChains; i++) {
     let q = Math.floor(rand() * (cols - 4)) + 2;
     let r = Math.floor(rand() * (rows - 4)) + 2;
-    const length = 3 + Math.floor(rand() * 3); // Each chain 3 to 5
+    const length = 3 + Math.floor(rand() * 3);
 
     for (let j = 0; j < length; j++) {
       const tile = map[r][q];
 
       const distFromP1 = Math.sqrt((q - 2) ** 2 + (r - 2) ** 2);
       const distFromP2 = Math.sqrt((q - 22) ** 2 + (r - 22) ** 2);
+
       if (tile.type === 'grassland' && distFromP1 > 3 && distFromP2 > 3) {
-        tile.type = 'mountain';
-        tile.movementCost = terrainTypes.mountain.movementCost;
-        tile.impassable = terrainTypes.mountain.impassable;
+        Object.assign(tile, { type: 'mountain', ...terrainTypes.mountain });
       }
 
       const nbs = neighbors(q, r);
@@ -119,7 +112,3 @@ export function generateMap(rows = 25, cols = 25, seed = 'defaultseed') {
 
   return map;
 }
-
-
-
-
