@@ -1,137 +1,154 @@
-// File: game/units.js
+// File: game/ui.js
 
-import { getState, setState } from './game-state.js';
-import {
-  updateGameUI,
-  setHoveredHex,
-  drawDebugInfo,
-  setCurrentPath
-} from './ui.js';
-import { calculatePath } from './pathfinding.js';
-import { isTileBlocked } from './terrain.js';
-import { pushStateToSupabase } from '../lib/supabase.js';
+import { drawTerrain, drawUnit } from './draw.js';
+import { getState } from './game-state.js';
 
-function getHexAtMouse(e, canvas) {
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  const size = 16;
-  const SQRT3 = Math.sqrt(3);
-  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
-  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
-  const adjustedX = x - offsetX;
-  const adjustedY = y - offsetY;
-  const row = Math.round(adjustedY / (size * 1.5));
-  const col = Math.round((adjustedX / (size * SQRT3)) - 0.5 * (row % 2));
-  return { col, row };
-}
+let hoveredHex = null;
+let currentPath = [];
 
-document.addEventListener('DOMContentLoaded', () => {
-  const canvas = document.getElementById('gameCanvas');
-  if (!canvas) return;
-
-  canvas.addEventListener('click', (e) => {
-    const { col, row } = getHexAtMouse(e, canvas);
-    const state = getState();
-    if (!state.map?.[row]?.[col]) return;
-
-    const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
-
-    if (selectedUnit && state.currentTurn === state.playerId) {
-      state.selectedHex = { col, row };
-      const path = calculatePath(selectedUnit.x, selectedUnit.y, col, row, state.map);
-      setCurrentPath(path || []);
-      setHoveredHex(null);
-      setState(state);
-      updateGameUI();
-    } else {
-      const clickedUnit = state.units.find(u => u.x === col && u.y === row && u.owner === state.playerId);
-      if (clickedUnit) {
-        setState({ ...state, selectedUnitId: clickedUnit.id });
-        updateGameUI();
-      }
-    }
-  });
-
-  canvas.addEventListener('mousemove', (e) => {
-    const { col, row } = getHexAtMouse(e, canvas);
-    const state = getState();
-    if (!state.map?.[row]?.[col]) return;
-    if (!state.selectedHex) setHoveredHex(col, row);
-    if (state.debugEnabled) drawDebugInfo(col, row);
-  });
-
-  document.getElementById('selectUnitBtn')?.addEventListener('click', () => {
-    const state = getState();
-    if (state.currentTurn === state.playerId) {
-      const unit = state.units.find(u => u.owner === state.playerId);
-      if (unit) {
-        setState({ ...state, selectedUnitId: unit.id });
-        updateGameUI();
-      }
-    } else {
-      alert('It is not your turn.');
-    }
-  });
-
-  document.getElementById('moveToHexBtn')?.addEventListener('click', () => {
-    const state = getState();
-    const target = state.selectedHex;
-    if (!target) return;
-
-    const unit = state.units.find(u => u.id === state.selectedUnitId && u.owner === state.playerId);
-    if (!unit) return;
-
-    const path = calculatePath(unit.x, unit.y, target.col, target.row, state.map);
-    if (!path || path.length < 2) return;
-
-    const next = path[1];
-    unit.x = next.x;
-    unit.y = next.y;
-
-    setCurrentPath([]);
-    setState(state);
-    pushStateToSupabase();
-    updateGameUI();
-  });
-});
-
-export function performAction(unitId, targetX, targetY) {
-  const state = getState();
-  const unit = state.units.find(u => u.id === unitId && u.owner === state.playerId);
-  if (!unit || state.currentTurn !== state.playerId || unit.ap < 1) return;
-
-  const dx = targetX - unit.x;
-  const dy = targetY - unit.y;
-  const distance = Math.sqrt(dx * dx + dy * dy);
-
-  if (distance <= 3 && !isTileBlocked(targetX, targetY, state.map)) {
-    unit.ap -= 1;
-    const targetUnit = state.units.find(u => u.x === targetX && u.y === targetY);
-    if (targetUnit) {
-      targetUnit.hp -= 1;
-      if (targetUnit.hp <= 0) {
-        state.units = state.units.filter(u => u.id !== targetUnit.id);
-      }
-    }
-    setState(state);
-    pushStateToSupabase();
-    updateGameUI();
+export function updateTurnDisplay(turn) {
+  const turnInfo = document.getElementById('turn-display');
+  if (turnInfo) {
+    turnInfo.textContent = `Current Turn: ${turn}`;
   }
 }
 
-export function endTurn() {
+export function drawMap() {
   const state = getState();
-  state.currentTurn = state.currentTurn === 'player1' ? 'player2' : 'player1';
-  state.units.forEach(unit => {
-    if (unit.owner === state.currentTurn) {
-      unit.mp = 10;
-      unit.ap = 1;
+  const canvas = document.getElementById('gameCanvas');
+  if (!canvas) return;
+
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const hexSize = 16;
+  for (let y = 0; y < state.map.length; y++) {
+    for (let x = 0; x < state.map[y].length; x++) {
+      const tile = state.map[y][x];
+      drawTerrain(ctx, x, y, tile.type, hexSize);
     }
+  }
+
+  if (currentPath.length > 0) {
+    drawPath(ctx, currentPath, hexSize);
+  }
+
+  if (state.selectedHex) {
+    drawSelectedHex(ctx, state.selectedHex.col, state.selectedHex.row, hexSize);
+  }
+
+  if (hoveredHex && !state.selectedHex) {
+    drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
+  }
+
+  state.units.forEach((unit) => {
+    drawUnit(ctx, unit, hexSize);
   });
-  state.selectedHex = null;
-  setCurrentPath([]);
-  setState(state);
-  pushStateToSupabase();
-  updateGameUI();
+}
+
+export function setHoveredHex(col, row) {
+  hoveredHex = col !== null && row !== null ? { col, row } : null;
+  drawMap();
+}
+
+export function setCurrentPath(path) {
+  currentPath = path;
+  drawMap();
+}
+
+function drawPath(ctx, path, hexSize) {
+  ctx.strokeStyle = 'yellow';
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+
+  for (let i = 0; i < path.length; i++) {
+    const { x, y } = path[i];
+    const pixel = hexToPixel(x, y, hexSize);
+    if (i === 0) ctx.moveTo(pixel.x, pixel.y);
+    else ctx.lineTo(pixel.x, pixel.y);
+  }
+
+  ctx.stroke();
+}
+
+function drawHoveredHex(ctx, col, row, size) {
+  const { x, y } = hexToPixel(col, row, size);
+  const corners = getHexCorners(x, y, size);
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < corners.length; i++) {
+    ctx.lineTo(corners[i].x, corners[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = '#ffcc00';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function drawSelectedHex(ctx, col, row, size) {
+  const { x, y } = hexToPixel(col, row, size);
+  const corners = getHexCorners(x, y, size);
+  ctx.beginPath();
+  ctx.moveTo(corners[0].x, corners[0].y);
+  for (let i = 1; i < corners.length; i++) {
+    ctx.lineTo(corners[i].x, corners[i].y);
+  }
+  ctx.closePath();
+  ctx.strokeStyle = 'orange';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+}
+
+function getHexCorners(cx, cy, size) {
+  const corners = [];
+  for (let i = 0; i < 6; i++) {
+    const angle = Math.PI / 180 * (60 * i - 30);
+    corners.push({
+      x: cx + size * Math.cos(angle),
+      y: cy + size * Math.sin(angle)
+    });
+  }
+  return corners;
+}
+
+function hexToPixel(col, row, size) {
+  const SQRT3 = Math.sqrt(3);
+  const canvas = document.getElementById('gameCanvas');
+  const x = size * SQRT3 * (col + 0.5 * (row % 2));
+  const y = size * 1.5 * row;
+  const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
+  const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
+  return { x: x + offsetX, y: y + offsetY };
+}
+
+export function updateGameUI() {
+  drawMap();
+  updateTurnDisplay(getState().currentTurn);
+}
+
+export function drawDebugInfo(col, row) {
+  const state = getState();
+  if (!state.debugEnabled) return;
+
+  const canvas = document.getElementById('gameCanvas');
+  const ctx = canvas.getContext('2d');
+  const tile = state.map?.[row]?.[col];
+  if (!tile) return;
+
+  const hexSize = 16;
+  const { x, y } = hexToPixel(col, row, hexSize);
+  let debugText = `(${col},${row}) ${tile.type}`;
+  const unit = state.units.find(u => u.x === col && u.y === row);
+  if (unit) debugText += ` | ${unit.owner}`;
+
+  ctx.fillStyle = 'black';
+  ctx.font = '12px monospace';
+  ctx.fillText(debugText, x + 10, y - 10);
+}
+
+export function toggleDebugMode() {
+  const state = getState();
+  const enabled = !state.debugEnabled;
+  setState({ ...state, debugEnabled: enabled });
+  console.log(enabled ? '✅ Entered debug mode' : '❌ Exited debug mode');
 }
