@@ -47,7 +47,7 @@ export function findPath(map, start, goal) {
   const openSet = [startNode];
   const cameFrom = new Map();
   const gScore = new Map([[key(startNode), 0]]);
-  const fScore = new Map([[key(startNode), heuristic(startNode, goalNode)]);
+  const fScore = new Map([[key(startNode), heuristic(startNode, goalNode)]]); // ← ✅ FIXED: closed bracket added
 
   while (openSet.length > 0) {
     openSet.sort((a, b) => fScore.get(key(a)) - fScore.get(key(b)));
