@@ -152,7 +152,3 @@ export function toggleDebugMode() {
   setState({ ...state, debugEnabled: enabled });
   console.log(enabled ? '✅ Entered debug mode' : '❌ Exited debug mode');
 }
-
-
-
-
