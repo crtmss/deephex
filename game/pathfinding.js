@@ -1,51 +1,52 @@
+// File: game/pathfinding.js
+
 import { isDangerousTile } from './terrain.js';
 
-// ✅ Correct hex grid distance heuristic (cube distance)
+// ✅ Correct hex grid distance heuristic (cube distance for axial coords)
 function heuristic(a, b) {
-  const dx = a.x - b.x;
-  const dy = a.y - b.y;
-  const dz = -dx - dy;
-  return Math.max(Math.abs(dx), Math.abs(dy), Math.abs(dz));
+  const dq = a.q - b.q;
+  const dr = a.r - b.r;
+  const dz = -dq - dr;
+  return Math.max(Math.abs(dq), Math.abs(dr), Math.abs(dz));
 }
 
+// ✅ Correct neighbors for odd-q vertical layout
 function getNeighbors(map, node) {
-  const col = node.x;
-  const row = node.y;
+  const q = node.q;
+  const r = node.r;
 
-  const evenOffsets = [
-    { dx: +1, dy:  0 }, { dx:  0, dy: -1 }, { dx: -1, dy: -1 },
-    { dx: -1, dy:  0 }, { dx: -1, dy: +1 }, { dx:  0, dy: +1 }
+  const directionsEven = [
+    { dq: +1, dr:  0 }, { dq:  0, dr: -1 }, { dq: -1, dr: -1 },
+    { dq: -1, dr:  0 }, { dq: -1, dr: +1 }, { dq:  0, dr: +1 }
   ];
-
-  const oddOffsets = [
-    { dx: +1, dy:  0 }, { dx: +1, dy: -1 }, { dx:  0, dy: -1 },
-    { dx: -1, dy:  0 }, { dx:  0, dy: +1 }, { dx: +1, dy: +1 }
+  const directionsOdd = [
+    { dq: +1, dr:  0 }, { dq: +1, dr: -1 }, { dq:  0, dr: -1 },
+    { dq: -1, dr:  0 }, { dq:  0, dr: +1 }, { dq: +1, dr: +1 }
   ];
+  const dirs = q % 2 === 0 ? directionsEven : directionsOdd;
 
-  const offsets = col % 2 === 0 ? evenOffsets : oddOffsets;
   const neighbors = [];
-
-  for (const { dx, dy } of offsets) {
-    const nx = col + dx;
-    const ny = row + dy;
-    if (map[ny] && map[ny][nx]) {
-      const tile = map[ny][nx];
+  for (const { dq, dr } of dirs) {
+    const nq = q + dq;
+    const nr = r + dr;
+    const row = map[nr];
+    if (row && row[nq]) {
+      const tile = row[nq];
       if (tile.movementCost !== Infinity && !tile.impassable && !isDangerousTile(tile)) {
-        neighbors.push({ ...tile, x: nx, y: ny });
+        neighbors.push({ ...tile });
       }
     }
   }
-
   return neighbors;
 }
 
 export function findPath(map, start, goal) {
   if (!start || !goal) return [];
 
-  const startNode = { ...start, x: start.q ?? start.x, y: start.r ?? start.y };
-  const goalNode = { ...goal, x: goal.q ?? goal.x, y: goal.r ?? goal.y };
+  const startNode = { ...start };
+  const goalNode = { ...goal };
 
-  const key = (t) => `${t.x},${t.y}`;
+  const key = (t) => `${t.q},${t.r}`;
   const openSet = [startNode];
   const cameFrom = new Map();
   const gScore = new Map([[key(startNode), 0]]);
@@ -56,16 +57,16 @@ export function findPath(map, start, goal) {
     const current = openSet.shift();
     const currentKey = key(current);
 
-    if (current.x === goalNode.x && current.y === goalNode.y) {
+    if (current.q === goalNode.q && current.r === goalNode.r) {
       const path = [];
       let currKey = currentKey;
       let currNode = current;
       while (cameFrom.has(currKey)) {
-        path.unshift({ x: currNode.x, y: currNode.y });
+        path.unshift({ q: currNode.q, r: currNode.r });
         currNode = cameFrom.get(currKey);
         currKey = key(currNode);
       }
-      path.unshift({ x: startNode.x, y: startNode.y });
+      path.unshift({ q: startNode.q, r: startNode.r });
       return path;
     }
 
@@ -86,16 +87,16 @@ export function findPath(map, start, goal) {
   return [];
 }
 
-export function calculatePath(startX, startY, targetX, targetY, map) {
-  const start = map[startY]?.[startX];
-  const goal = map[targetY]?.[targetX];
+export function calculatePath(startQ, startR, targetQ, targetR, map) {
+  const start = map[startR]?.[startQ];
+  const goal = map[targetR]?.[targetQ];
   if (!start || !goal) return [];
   return findPath(map, start, goal);
 }
 
 export function calculateMovementCost(path, map) {
   return path.reduce((total, tile) => {
-    const terrain = map[tile.y]?.[tile.x];
+    const terrain = map[tile.r]?.[tile.q];
     return total + (terrain?.movementCost ?? 1);
   }, 0);
 }
