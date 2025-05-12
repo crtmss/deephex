@@ -48,11 +48,16 @@ function drawPath(ctx, path, hexSize) {
   ctx.strokeStyle = 'yellow';
   ctx.lineWidth = 3;
   ctx.beginPath();
-  path.forEach(({ x, y }, i) => {
-    const { x: px, y: py } = hexToPixel(x, y, hexSize);
-    if (i === 0) ctx.moveTo(px, py);
-    else ctx.lineTo(px, py);
+
+  path.forEach((hex, i) => {
+    // Support both { x, y } and { q, r } formats
+    const col = hex.x ?? hex.q;
+    const row = hex.y ?? hex.r;
+    const { x, y } = hexToPixel(col, row, hexSize);
+    if (i === 0) ctx.moveTo(x, y);
+    else ctx.lineTo(x, y);
   });
+
   ctx.stroke();
 }
 
