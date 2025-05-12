@@ -20,22 +20,22 @@ export function drawMap() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const hexSize = 16;
-  for (let y = 0; y < state.map.length; y++) {
-    for (let x = 0; x < state.map[y].length; x++) {
-      const tile = state.map[y][x];
-      drawTerrain(ctx, x, y, tile.type, hexSize);
+  for (let r = 0; r < state.map.length; r++) {
+    for (let q = 0; q < state.map[r].length; q++) {
+      const tile = state.map[r][q];
+      drawTerrain(ctx, tile.q, tile.r, tile.type, hexSize); // ✅ uses q, r
     }
   }
 
   if (currentPath.length > 0) drawPath(ctx, currentPath, hexSize);
-  if (state.selectedHex) drawSelectedHex(ctx, state.selectedHex.col, state.selectedHex.row, hexSize);
-  if (hoveredHex && !state.selectedHex) drawHoveredHex(ctx, hoveredHex.col, hoveredHex.row, hexSize);
+  if (state.selectedHex) drawSelectedHex(ctx, state.selectedHex.q, state.selectedHex.r, hexSize);
+  if (hoveredHex && !state.selectedHex) drawHoveredHex(ctx, hoveredHex.q, hoveredHex.r, hexSize);
 
   state.units.forEach(unit => drawUnit(ctx, unit, hexSize));
 }
 
-export function setHoveredHex(col, row) {
-  hoveredHex = col !== null && row !== null ? { col, row } : null;
+export function setHoveredHex(q, r) {
+  hoveredHex = q !== null && r !== null ? { q, r } : null;
   drawMap();
 }
 
@@ -50,10 +50,7 @@ function drawPath(ctx, path, hexSize) {
   ctx.beginPath();
 
   path.forEach((hex, i) => {
-    // Support both { x, y } and { q, r } formats
-    const col = hex.x ?? hex.q;
-    const row = hex.y ?? hex.r;
-    const { x, y } = hexToPixel(col, row, hexSize);
+    const { x, y } = hexToPixel(hex.q, hex.r, hexSize); // ✅ only q, r
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
@@ -61,8 +58,8 @@ function drawPath(ctx, path, hexSize) {
   ctx.stroke();
 }
 
-function drawHoveredHex(ctx, col, row, size) {
-  const { x, y } = hexToPixel(col, row, size);
+function drawHoveredHex(ctx, q, r, size) {
+  const { x, y } = hexToPixel(q, r, size);
   const corners = getHexCorners(x, y, size);
   ctx.beginPath();
   ctx.moveTo(corners[0].x, corners[0].y);
@@ -73,8 +70,8 @@ function drawHoveredHex(ctx, col, row, size) {
   ctx.stroke();
 }
 
-function drawSelectedHex(ctx, col, row, size) {
-  const { x, y } = hexToPixel(col, row, size);
+function drawSelectedHex(ctx, q, r, size) {
+  const { x, y } = hexToPixel(q, r, size);
   const corners = getHexCorners(x, y, size);
   ctx.beginPath();
   ctx.moveTo(corners[0].x, corners[0].y);
@@ -94,11 +91,11 @@ function getHexCorners(cx, cy, size) {
   return corners;
 }
 
-function hexToPixel(col, row, size) {
+function hexToPixel(q, r, size) {
   const SQRT3 = Math.sqrt(3);
   const canvas = document.getElementById('gameCanvas');
-  const x = size * SQRT3 * (col + 0.5 * (row % 2));
-  const y = size * 1.5 * row;
+  const x = size * SQRT3 * (q + 0.5 * (r % 2));
+  const y = size * 1.5 * r;
   const offsetX = canvas.width / 2 - ((25 * size * SQRT3) / 2);
   const offsetY = canvas.height / 2 - ((25 * size * 1.5) / 2);
   return { x: x + offsetX, y: y + offsetY };
@@ -109,18 +106,21 @@ export function updateGameUI() {
   updateTurnDisplay(getState().currentTurn);
 }
 
-export function drawDebugInfo(col, row) {
+export function drawDebugInfo(q, r) {
   const state = getState();
   if (!state.debugEnabled) return;
+
   const canvas = document.getElementById('gameCanvas');
   const ctx = canvas.getContext('2d');
-  const tile = state.map?.[row]?.[col];
+  const tile = state.map?.[r]?.[q];
   if (!tile) return;
+
   const hexSize = 16;
-  const { x, y } = hexToPixel(col, row, hexSize);
-  let text = `(${col},${row}) ${tile.type}`;
-  const unit = state.units.find(u => u.x === col && u.y === row);
+  const { x, y } = hexToPixel(q, r, hexSize);
+  let text = `(${q},${r}) ${tile.type}`;
+  const unit = state.units.find(u => u.q === q && u.r === r);
   if (unit) text += ` | ${unit.owner}`;
+
   ctx.fillStyle = 'black';
   ctx.font = '12px monospace';
   ctx.fillText(text, x + 10, y - 10);
