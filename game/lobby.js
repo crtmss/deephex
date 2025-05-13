@@ -42,6 +42,7 @@ async function createLobby() {
   roomId = data[0].id;
   playerId = 'player1';
 
+  initialUnits.forEach(u => console.log(`Unit created: ${u.id} at (${u.x}, ${u.y})`));
   setState({
     playerId,
     roomId,
@@ -103,6 +104,7 @@ async function joinLobby(room_code) {
     .update({ units: state.units })
     .eq('id', data.id);
 
+  initialUnits.forEach(u => console.log(`Unit created: ${u.id} at (${u.x}, ${u.y})`));
   setState({
     playerId,
     roomId: data.id,
@@ -143,7 +145,8 @@ function listenToLobby(roomId) {
 
     if (mapChanged || unitsChanged || turnChanged) {
       console.log('[Realtime] Detected important state change. Updating locally...');
-      setState({
+      initialUnits.forEach(u => console.log(`Unit created: ${u.id} at (${u.x}, ${u.y})`));
+  setState({
         ...current,
         map,
         units,
