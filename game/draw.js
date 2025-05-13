@@ -3,7 +3,7 @@
 const SQRT3 = Math.sqrt(3);
 import { getState } from './game-state.js';
 
-export function drawTerrain(ctx, q, r, terrainType, size) {
+function drawTerrain(ctx, q, r, terrainType, size) {
   const { x, y } = hexToPixel(q, r, size);
   const corners = getHexCorners(x, y, size);
   ctx.beginPath();
@@ -64,7 +64,7 @@ function getHexCorners(cx, cy, size) {
   return corners;
 }
 
-export function drawUnit(ctx, unit, hexSize) {
+function drawUnit(ctx, unit, hexSize) {
   const { x, y, owner } = unit;
   const { x: px, y: py } = hexToPixel(x, y, hexSize);
 
@@ -76,3 +76,9 @@ export function drawUnit(ctx, unit, hexSize) {
   ctx.lineWidth = 2;
   ctx.stroke();
 }
+
+window.drawTerrain = drawTerrain;
+window.terrainColor = terrainColor;
+window.hexToPixel = hexToPixel;
+window.getHexCorners = getHexCorners;
+window.drawUnit = drawUnit;
