@@ -82,3 +82,4 @@ window.terrainColor = terrainColor;
 window.hexToPixel = hexToPixel;
 window.getHexCorners = getHexCorners;
 window.drawUnit = drawUnit;
+ 
