@@ -17,8 +17,9 @@ async function createLobby() {
   const initialMap = generateMap(25, 25, room_code);
 
   const initialUnits = [
-    { id: 'p1unit', owner: 'player1', x: 2, y: 2, hp: 5, mp: 8, ap: 1 }
-  ];
+  { id: 'p1unit', owner: 'player1', x: 2, y: 2, hp: 5, mp: 8, ap: 1 },
+  { id: 'p2unit', owner: 'player2', x: 22, y: 22, hp: 5, mp: 8, ap: 1 }
+];
 
   const { data, error } = await supabase
     .from('lobbies')
