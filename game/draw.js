@@ -18,6 +18,7 @@ export function drawTerrain(ctx, q, r, terrainType, size) {
 }
 
 export function drawUnit(ctx, unit, size) {
+  console.log(`Drawing unit at (${unit.x}, ${unit.y}) owned by ${unit.owner}`);
   const { x, y } = hexToPixel(unit.q, unit.r, size); // ✅ uses q, r
   ctx.beginPath();
   ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
