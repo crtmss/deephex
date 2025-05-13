@@ -30,7 +30,6 @@ function drawUnit(ctx, unit, hexSize) {
   ctx.lineWidth = 2;
   ctx.stroke();
 }
- = hexToPixel(unit.q, unit.r, size); // ✅ uses q, r
   ctx.beginPath();
   ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
   ctx.fillStyle = unit.owner === 'player1' ? "red" : "blue";
