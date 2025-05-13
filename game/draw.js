@@ -17,9 +17,20 @@ export function drawTerrain(ctx, q, r, terrainType, size) {
   ctx.stroke();
 }
 
-export function drawUnit(ctx, unit, size) {
-  console.log(`Drawing unit at (${unit.x}, ${unit.y}) owned by ${unit.owner}`);
-  const { x, y } = hexToPixel(unit.q, unit.r, size); // ✅ uses q, r
+export 
+function drawUnit(ctx, unit, hexSize) {
+  const { x, y, owner } = unit;
+  const { x: px, y: py } = hexToPixel(x, y, hexSize);
+
+  ctx.beginPath();
+  ctx.arc(px, py, hexSize * 0.4, 0, 2 * Math.PI);
+  ctx.fillStyle = owner === 'player1' ? 'red' : 'blue';
+  ctx.fill();
+  ctx.strokeStyle = 'black';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+ = hexToPixel(unit.q, unit.r, size); // ✅ uses q, r
   ctx.beginPath();
   ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
   ctx.fillStyle = unit.owner === 'player1' ? "red" : "blue";
