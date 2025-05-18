@@ -4,8 +4,7 @@ import { getState, setState } from './game-state.js';
 import {
   updateGameUI,
   setHoveredHex,
-  drawDebugInfo,
-  setCurrentPath
+  drawDebugInfo
 } from './ui.js';
 import { calculatePath } from './pathfinding.js';
 import { isTileBlocked } from './terrain.js';
@@ -42,11 +41,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
 
     if (selectedUnit && state.currentTurn === state.playerId) {
-      state.selectedHex = { q, r };  // ✅ fix: use q/r to match draw logic
       const path = calculatePath(selectedUnit.q, selectedUnit.r, q, r, state.map);
-      setState({ ...getState(), currentPath: path || [] });
       setHoveredHex(null);
-      setState(state);
+      setState({
+        ...state,
+        selectedHex: { q, r },
+        currentPath: path || []
+      });
       updateGameUI();
     } else {
       const clickedUnit = state.units.find(u => u.q === q && u.r === r && u.owner === state.playerId);
@@ -63,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!state.map?.[r]?.[q]) return;
 
     if (!state.selectedHex) {
-      setHoveredHex(q, r); // UI still expects col/row
+      setHoveredHex(q, r);
     }
 
     if (state.debugEnabled) drawDebugInfo(q, r);
@@ -97,8 +98,10 @@ document.addEventListener('DOMContentLoaded', () => {
     unit.q = next.q;
     unit.r = next.r;
 
-    setState({ ...getState(), currentPath: [] });
-    setState(state);
+    setState({
+      ...state,
+      currentPath: []
+    });
     pushStateToSupabase();
     updateGameUI();
   });
@@ -138,9 +141,11 @@ export function endTurn() {
       unit.ap = 1;
     }
   });
-  state.selectedHex = null;
-  setState({ ...getState(), currentPath: [] });
-  setState(state);
+  setState({
+    ...state,
+    selectedHex: null,
+    currentPath: []
+  });
   pushStateToSupabase();
   updateGameUI();
 }
