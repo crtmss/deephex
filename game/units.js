@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (selectedUnit && state.currentTurn === state.playerId) {
       state.selectedHex = { q, r };  // ✅ fix: use q/r to match draw logic
       const path = calculatePath(selectedUnit.q, selectedUnit.r, q, r, state.map);
-      setCurrentPath(path || []);
+      setState({ ...getState(), currentPath: path || [] });
       setHoveredHex(null);
       setState(state);
       updateGameUI();
@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
     unit.q = next.q;
     unit.r = next.r;
 
-    setCurrentPath([]);
+    setState({ ...getState(), currentPath: [] });
     setState(state);
     pushStateToSupabase();
     updateGameUI();
@@ -139,7 +139,7 @@ export function endTurn() {
     }
   });
   state.selectedHex = null;
-  setCurrentPath([]);
+  setState({ ...getState(), currentPath: [] });
   setState(state);
   pushStateToSupabase();
   updateGameUI();
