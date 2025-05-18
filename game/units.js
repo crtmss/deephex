@@ -42,6 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (selectedUnit && state.currentTurn === state.playerId) {
       const path = calculatePath(selectedUnit.q, selectedUnit.r, q, r, state.map);
+      console.log('📡 Calculated path:', path);
       setHoveredHex(null);
       setState({
         ...state,
