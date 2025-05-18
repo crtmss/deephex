@@ -17,7 +17,6 @@ function drawTerrain(ctx, q, r, terrainType, size) {
   ctx.stroke();
 }
 
-export  = hexToPixel(unit.q, unit.r, size); // ✅ uses q, r
   ctx.beginPath();
   ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
   ctx.fillStyle = unit.owner === 'player1' ? "red" : "blue";
