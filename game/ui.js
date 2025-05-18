@@ -45,6 +45,7 @@ export function setCurrentPath(path) {
 }
 
 function drawPath(ctx, path, hexSize) {
+  console.log('🖌️ Drawing path with', path.length, 'steps');
   ctx.strokeStyle = 'yellow';
   ctx.lineWidth = 3;
   ctx.beginPath();
