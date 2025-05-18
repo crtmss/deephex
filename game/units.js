@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectedUnit = state.units.find(u => u.id === state.selectedUnitId);
 
     if (selectedUnit && state.currentTurn === state.playerId) {
-      state.selectedHex = { col: q, row: r };  // UI still uses col/row
+      state.selectedHex = { q, r };  // ✅ fix: use q/r to match draw logic
       const path = calculatePath(selectedUnit.q, selectedUnit.r, q, r, state.map);
       setCurrentPath(path || []);
       setHoveredHex(null);
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const unit = state.units.find(u => u.id === state.selectedUnitId && u.owner === state.playerId);
     if (!unit) return;
 
-    const path = calculatePath(unit.q, unit.r, target.col, target.row, state.map);
+    const path = calculatePath(unit.q, unit.r, target.q, target.r, state.map);
     if (!path || path.length < 2) return;
 
     const next = path[1];
