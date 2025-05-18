@@ -1,7 +1,5 @@
-// File: game/ui.js
-
 import { drawTerrain, drawUnit } from './draw.js';
-import { getState } from './game-state.js';
+import { getState, setState } from './game-state.js';
 
 let hoveredHex = null;
 export function updateTurnDisplay(turn) {
@@ -21,11 +19,14 @@ export function drawMap() {
   for (let r = 0; r < state.map.length; r++) {
     for (let q = 0; q < state.map[r].length; q++) {
       const tile = state.map[r][q];
-      drawTerrain(ctx, tile.q, tile.r, tile.type, hexSize); // ✅ uses q, r
+      drawTerrain(ctx, tile.q, tile.r, tile.type, hexSize);
     }
   }
 
-  if (state.currentPath && state.currentPath.length > 0) drawPath(ctx, currentPath, hexSize);
+  if (state.currentPath && state.currentPath.length > 0) {
+    drawPath(ctx, state.currentPath, hexSize);
+  }
+
   if (state.selectedHex) drawSelectedHex(ctx, state.selectedHex.q, state.selectedHex.r, hexSize);
   if (hoveredHex && !state.selectedHex) drawHoveredHex(ctx, hoveredHex.q, hoveredHex.r, hexSize);
 
@@ -38,7 +39,8 @@ export function setHoveredHex(q, r) {
 }
 
 export function setCurrentPath(path) {
-  
+  const state = getState();
+  setState({ ...state, currentPath: path });
   drawMap();
 }
 
@@ -48,7 +50,7 @@ function drawPath(ctx, path, hexSize) {
   ctx.beginPath();
 
   path.forEach((hex, i) => {
-    const { x, y } = hexToPixel(hex.q, hex.r, hexSize); // ✅ only q, r
+    const { x, y } = hexToPixel(hex.q, hex.r, hexSize);
     if (i === 0) ctx.moveTo(x, y);
     else ctx.lineTo(x, y);
   });
