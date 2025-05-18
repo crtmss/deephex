@@ -91,3 +91,11 @@ window.terrainColor = terrainColor;
 window.hexToPixel = hexToPixel;
 window.getHexCorners = getHexCorners;
 window.drawUnit = drawUnit;
+
+export {
+  drawTerrain,
+  drawUnit,
+  terrainColor,
+  hexToPixel,
+  getHexCorners
+};
