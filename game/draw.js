@@ -23,6 +23,26 @@ function drawUnit(ctx, unit, size) {
   ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
   ctx.fillStyle = unit.owner === 'player1' ? "red" : "blue";
   ctx.fill();
+
+function drawUnit(ctx, unit, size) {
+  const { x, y } = hexToPixel(unit.x, unit.y, size);
+  ctx.beginPath();
+  ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
+  ctx.fillStyle = unit.owner === 'player1' ? "red" : "blue";
+  ctx.fill();
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  const selectedUnitId = getState().selectedUnitId;
+  if (selectedUnitId && unit.id === selectedUnitId) {
+    ctx.beginPath();
+    ctx.arc(x, y, size / 6, 0, 2 * Math.PI);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+  }
+}
+
   ctx.strokeStyle = "#000";
   ctx.lineWidth = 1;
   ctx.stroke();
@@ -65,18 +85,6 @@ function getHexCorners(cx, cy, size) {
   return corners;
 }
 
-function drawUnit(ctx, unit, hexSize) {
-  const { x, y, owner } = unit;
-  const { x: px, y: py } = hexToPixel(x, y, hexSize);
-
-  ctx.beginPath();
-  ctx.arc(px, py, hexSize * 0.4, 0, 2 * Math.PI);
-  ctx.fillStyle = owner === 'player1' ? 'red' : 'blue';
-  ctx.fill();
-  ctx.strokeStyle = 'black';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-}
 
 window.drawTerrain = drawTerrain;
 window.terrainColor = terrainColor;
