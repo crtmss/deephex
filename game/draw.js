@@ -34,6 +34,26 @@ function drawTerrain(ctx, q, r, terrainType, size) {
   }
 }
 
+
+function drawUnit(ctx, unit, size) {
+  const { x, y } = hexToPixel(unit.x, unit.y, size);
+  ctx.beginPath();
+  ctx.arc(x, y, size / 2.5, 0, 2 * Math.PI);
+  ctx.fillStyle = unit.owner === 'player1' ? "red" : "blue";
+  ctx.fill();
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 1;
+  ctx.stroke();
+
+  const selectedUnitId = getState().selectedUnitId;
+  if (selectedUnitId && unit.id === selectedUnitId) {
+    ctx.beginPath();
+    ctx.arc(x, y, size / 6, 0, 2 * Math.PI);
+    ctx.fillStyle = 'white';
+    ctx.fill();
+  }
+}
+
 function terrainColor(type) {
   switch (type) {
     case "grassland": return "#34a853";
