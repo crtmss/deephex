@@ -4,8 +4,6 @@ import { drawTerrain, drawUnit } from './draw.js';
 import { getState } from './game-state.js';
 
 let hoveredHex = null;
-let currentPath = [];
-
 export function updateTurnDisplay(turn) {
   const turnInfo = document.getElementById('turn-display');
   if (turnInfo) turnInfo.textContent = `Current Turn: ${turn}`;
@@ -27,7 +25,7 @@ export function drawMap() {
     }
   }
 
-  if (currentPath.length > 0) drawPath(ctx, currentPath, hexSize);
+  if (state.currentPath && state.currentPath.length > 0) drawPath(ctx, currentPath, hexSize);
   if (state.selectedHex) drawSelectedHex(ctx, state.selectedHex.q, state.selectedHex.r, hexSize);
   if (hoveredHex && !state.selectedHex) drawHoveredHex(ctx, hoveredHex.q, hoveredHex.r, hexSize);
 
@@ -40,7 +38,7 @@ export function setHoveredHex(q, r) {
 }
 
 export function setCurrentPath(path) {
-  currentPath = path;
+  
   drawMap();
 }
 
