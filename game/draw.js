@@ -34,7 +34,6 @@ function drawTerrain(ctx, q, r, terrainType, size) {
   }
 }
 
-
 function drawUnit(ctx, unit, size) {
   const { x, y } = hexToPixel(unit.x, unit.y, size);
   ctx.beginPath();
