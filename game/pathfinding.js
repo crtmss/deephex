@@ -77,7 +77,7 @@ export function findPath(map, start, goal) {
         cameFrom.set(neighborKey, current);
         gScore.set(neighborKey, tentativeG);
         fScore.set(neighborKey, tentativeG + heuristic(neighbor, goalNode));
-        if (!openSet.find(n => key(n) === neighborKey)) {
+        if (!openSet.find(n => key(n) == neighborKey)) {
           openSet.push(neighbor);
         }
       }
@@ -91,6 +91,7 @@ export function calculatePath(startQ, startR, targetQ, targetR, map) {
   const start = map[startR]?.[startQ];
   const goal = map[targetR]?.[targetQ];
   if (!start || !goal) return [];
+  console.log(`🧭 Pathfinding from (${startQ}, ${startR}) to (${targetQ}, ${targetR})`);
   return findPath(map, start, goal);
 }
 
@@ -100,3 +101,4 @@ export function calculateMovementCost(path, map) {
     return total + (terrain?.movementCost ?? 1);
   }, 0);
 }
+
