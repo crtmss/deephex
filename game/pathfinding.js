@@ -92,6 +92,7 @@ export function calculatePath(startQ, startR, targetQ, targetR, map) {
   const goal = map[targetR]?.[targetQ];
   if (!start || !goal) return [];
   console.log(`🧭 Pathfinding from (${startQ}, ${startR}) to (${targetQ}, ${targetR})`);
+  console.log(`🧭 Pathfinding from (${startQ}, ${startR}) to (${targetQ}, ${targetR})`);
   return findPath(map, start, goal);
 }
 
